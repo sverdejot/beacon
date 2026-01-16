@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<xs:schema elementFormDefault="qualified" attributeFormDefault="unqualified" xmlns:comx="http://levelC/schema/3/commonExtension" version="3.6" targetNamespace="http://levelC/schema/3/commonExtension" xmlns:com="http://levelC/schema/3/common" xmlns:loc="http://levelC/schema/3/locationReferencing" xmlns:tro="http://datex2.eu/schema/3/trafficRegulation" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://levelC/schema/3/locationReferencing" schemaLocation="LevelC_3_LocationReferencing.xsd" />
+  <xs:import namespace="http://levelC/schema/3/common" schemaLocation="LevelC_3_Common.xsd" />
+
+  <!-- Extensiones de clases usadas en common -->
+  <xs:complexType name="EmissionsExtension">
+    <xs:annotation>
+      <xs:documentation>An extension for the Emissions class to provide a comparison operator.</xs:documentation>
+    </xs:annotation>
+    <!-- Eliminamos los atributos porque no se van a usar -->
+  </xs:complexType>
+  
+  <xs:complexType name="VehicleCharacteristicsExtended">
+    <xs:annotation>
+      <xs:documentation>Extension class for vehicle characteristics</xs:documentation>
+    </xs:annotation>
+    <!-- Eliminamos los atributos porque no se van a usar -->
+  </xs:complexType>
+ 
+</xs:schema>

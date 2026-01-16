@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<xs:schema elementFormDefault="qualified" attributeFormDefault="unqualified" xmlns:cse="http://levelC/schema/3/commonSpanishExtension" version="1.0" targetNamespace="http://levelC/schema/3/commonSpanishExtension" xmlns:com="http://levelC/schema/3/common" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://levelC/schema/3/common" schemaLocation="LevelC_3_Common.xsd" />
+  <xs:complexType name="_EmissionClassificationSpainEnum">
+    <xs:simpleContent>
+      <xs:extension base="cse:EmissionClassificationSpainEnum">
+        <xs:attribute name="_extendedValue" type="xs:string" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="EmissionClassificationSpainEnum">
+    <xs:annotation>
+      <xs:documentation>Enumeration for the environmental badge used by DGT in Spain that allows vehicles to be classified based on their energy efficiency, taking into account their environmental impact</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="spanishLabelB">
+        <xs:annotation>
+          <xs:documentation>Internal combustion vehicles that, although they do not comply with the latest EURO emissions specifications, do comply with previous ones. Passenger cars and light gasoline vans registered since January 1, 2001 and diesel since 2006 will be entitled to this label. Vehicles with more than 8 seats and heavy vehicles, both gasoline and diesel, registered since 2006.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="spanishLabelC">
+        <xs:annotation>
+          <xs:documentation>Internal combustion vehicles that comply with the latest EURO emissions. Passenger cars and light gasoline vans registered from January 2006 and diesel from September 2015 will be entitled to this label. Vehicles with more than 8 seats, excluding the driver, and heavy vehicles with both gasoline and diesel, registered since 2014.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="spanishLabelCARSHARING">
+        <xs:annotation>
+          <xs:documentation>Identify shared use vehicles. Vehicle intended for rental without a driver dedicated to concatenated and intensive use by an indeterminate number of users within a delimited service area. It will be available, at any time, to be used through the use of mobile applications. Vehicles intended for rental without a driver that are not exclusively dedicated to that type of rental will not be considered included in this definition.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="spanishLabelCERO">
+        <xs:annotation>
+          <xs:documentation>Identify the most efficient vehicles. Battery electric vehicles (BEV), extended range electric vehicles (REEV), plug-in hybrid electric vehicles (PHEV) with a range of 40 km or fuel cell vehicles will be entitled to this label.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="spanishLabelECO">
+        <xs:annotation>
+          <xs:documentation>The next in the echelon of efficiency are mostly hybrid vehicles, gas or both. Plug-in electric vehicles with a range of less than 40 km, non-plug-in hybrids (HEV), vehicles powered by natural gas and gas (CNG and LNG) or liquefied petroleum gas (LPG) will be entitled to this label. They must meet the criteria of label C.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="spanishNoLabel">
+        <xs:annotation>
+          <xs:documentation>Vehicles that do not have the right to any type of badge as they do not meet the requirements to be labeled as a clean vehicle.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="ExtendedEmissions">
+    <xs:annotation>
+      <xs:documentation>Extension of the Emissions</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="emissionClassificationSpain" type="cse:_EmissionClassificationSpainEnum" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>The environmental badge used by DGT in Spain that allows vehicles to be classified based on their energy efficiency, taking into account their environmental impact</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  
+  <xs:simpleType name="_VehicleTypeEnumExtensionType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="authorizedVehicle" />
+      <xs:enumeration value="nonAuthorizedVehicle" />
+      <xs:enumeration value="slowVehicle" />
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<xs:schema elementFormDefault="qualified" attributeFormDefault="unqualified" xmlns:lse="http://levelC/schema/3/locationReferencingSpanishExtension" version="1.0" targetNamespace="http://levelC/schema/3/locationReferencingSpanishExtension" xmlns:com="http://levelC/schema/3/common" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://levelC/schema/3/common" schemaLocation="LevelC_3_Common.xsd" />
+  <xs:complexType name="_TpegDirectionRoadEnum">
+    <xs:simpleContent>
+      <xs:extension base="lse:TpegDirectionRoadEnum">
+        <xs:attribute name="_extendedValue" type="xs:string" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="ExtendedTpegLinearLocation">
+    <xs:annotation>
+      <xs:documentation>Extension of the TpegLinearLocation base class</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="tpegDirectionRoad" type="lse:_TpegDirectionRoadEnum" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Direction of circulation</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ExtendedTpegNonJunctionPoint">
+    <xs:annotation>
+      <xs:documentation>Extension of the TpegNonJunctionPoint base class</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="autonomousCommunity" type="com:String" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Autonomous Community code of Spain</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="kilometerPoint" type="com:Float" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Kilometer point of point</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="municipality" type="com:String" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Municipality of Spain</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="province" type="com:String" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Province of autonomous community of Spain</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ExtendedTpegSimplePoint">
+    <xs:annotation>
+      <xs:documentation>Extension of the TpegSimplePoint base class</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="tpegDirectionRoad" type="lse:_TpegDirectionRoadEnum" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Direction of circulation</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:simpleType name="TpegDirectionRoadEnum">
+    <xs:annotation>
+      <xs:documentation>Direction of circulation.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="both">
+        <xs:annotation>
+          <xs:documentation>The event occurs in both directions.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="negative">
+        <xs:annotation>
+          <xs:documentation>The event occurs in the increasing direction of the kilometer.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="positive">
+        <xs:annotation>
+          <xs:documentation>The event occurs in the decreasing direction of the kilometer.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="unknown">
+        <xs:annotation>
+          <xs:documentation>The meaning of the event is not known</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

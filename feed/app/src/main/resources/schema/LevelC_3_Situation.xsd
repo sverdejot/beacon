@@ -1,0 +1,1702 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<xs:schema elementFormDefault="qualified" attributeFormDefault="unqualified" xmlns:sit="http://levelC/schema/3/situation" version="3.6" targetNamespace="http://levelC/schema/3/situation" xmlns:com="http://levelC/schema/3/common" xmlns:loc="http://levelC/schema/3/locationReferencing" xmlns:sse="http://levelC/schema/3/situationSpanishExtension" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import namespace="http://levelC/schema/3/locationReferencing" schemaLocation="LevelC_3_LocationReferencing.xsd" />
+  <xs:import namespace="http://levelC/schema/3/common" schemaLocation="LevelC_3_Common.xsd" />
+  <xs:import namespace="http://levelC/schema/3/situationSpanishExtension" schemaLocation="LevelC_3_SituationSpanishExtension.xsd" />
+  <xs:complexType name="_AbnormalTrafficTypeEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:AbnormalTrafficTypeEnum">
+        <xs:attribute name="_extendedValue" type="xs:string" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="_AccidentTypeEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:AccidentTypeEnum">
+        <xs:attribute name="_extendedValue" type="xs:string" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="_AnimalPresenceTypeEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:AnimalPresenceTypeEnum">
+        <xs:attribute name="_extendedValue" type="xs:string" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="_CauseTypeEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:CauseTypeEnum">
+        <xs:attribute name="_extendedValue" type="sit:_CauseTypeEnumExtensionType" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="_CauseTypeEnumExtensionType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="movingBridgeInOperation" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="_CommentTypeEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:CommentTypeEnum">
+        <xs:attribute name="_extendedValue" type="sit:_CommentTypeEnumExtensionType" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="_CommentTypeEnumExtensionType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="operatorInformationExchange" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="_ComplianceOptionEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:ComplianceOptionEnum">
+        <xs:attribute name="_extendedValue" type="sit:_ComplianceOptionEnumExtensionType" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="_ComplianceOptionEnumExtensionType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="information" />
+      <xs:enumeration value="unknown" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="_ConstructionWorkTypeEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:ConstructionWorkTypeEnum">
+        <xs:attribute name="_extendedValue" type="xs:string" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="_DisturbanceActivityTypeEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:DisturbanceActivityTypeEnum">
+        <xs:attribute name="_extendedValue" type="xs:string" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="_EnvironmentalObstructionTypeEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:EnvironmentalObstructionTypeEnum">
+        <xs:attribute name="_extendedValue" type="xs:string" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="_EquipmentOrSystemFaultTypeEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:EquipmentOrSystemFaultTypeEnum">
+        <xs:attribute name="_extendedValue" type="xs:string" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="_EquipmentOrSystemTypeEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:EquipmentOrSystemTypeEnum">
+        <xs:attribute name="_extendedValue" type="sit:_EquipmentOrSystemTypeEnumExtensionType" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="_EquipmentOrSystemTypeEnumExtensionType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="accessControlSystem" />
+      <xs:enumeration value="parkingSensors" />
+      <xs:enumeration value="trafficSensors" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="_GeneralInstructionToRoadUsersTypeEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:GeneralInstructionToRoadUsersTypeEnum">
+        <xs:attribute name="_extendedValue" type="sit:_GeneralInstructionToRoadUsersTypeEnumExtensionType" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="_GeneralInstructionToRoadUsersTypeEnumExtensionType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="cyclistsMustDismount" />
+      <xs:enumeration value="pedestriansMustUseOtherSide" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="_ImpactExtensionType">
+    <xs:sequence>
+      <xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="_InfrastructureDamageTypeEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:InfrastructureDamageTypeEnum">
+        <xs:attribute name="_extendedValue" type="sit:_InfrastructureDamageTypeEnumExtensionType" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="_InfrastructureDamageTypeEnumExtensionType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="collapsedRoadSurface" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="_MobilityTypeEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:MobilityTypeEnum">
+        <xs:attribute name="_extendedValue" type="xs:string" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="_NetworkManagementExtensionType">
+    <xs:sequence>
+      <xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="_NonWeatherRelatedRoadConditionTypeEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:NonWeatherRelatedRoadConditionTypeEnum">
+        <xs:attribute name="_extendedValue" type="xs:string" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="_ObstructionTypeEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:ObstructionTypeEnum">
+        <xs:attribute name="_extendedValue" type="sit:_ObstructionTypeEnumExtensionType" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="_ObstructionTypeEnumExtensionType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="buildingWork" />
+      <xs:enumeration value="firefightersInOperation" />
+      <xs:enumeration value="policeInOperation" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="_OperatorActionExtensionType">
+    <xs:sequence>
+      <xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="_PoorEnvironmentTypeEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:PoorEnvironmentTypeEnum">
+        <xs:attribute name="_extendedValue" type="xs:string" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="_ProbabilityOfOccurrenceEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:ProbabilityOfOccurrenceEnum">
+        <xs:attribute name="_extendedValue" type="xs:string" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="_RoadMaintenanceTypeEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:RoadMaintenanceTypeEnum">
+        <xs:attribute name="_extendedValue" type="xs:string" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="_RoadOrCarriagewayOrLaneManagementTypeEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:RoadOrCarriagewayOrLaneManagementTypeEnum">
+        <xs:attribute name="_extendedValue" type="sit:_RoadOrCarriagewayOrLaneManagementTypeEnumExtensionType" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="_RoadOrCarriagewayOrLaneManagementTypeEnumExtensionType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="createOneDirectionWay" />
+      <xs:enumeration value="giveWay" />
+      <xs:enumeration value="transportRestrictions" />
+      <xs:enumeration value="createTwoDirectionWay" />
+      <xs:enumeration value="laneInOperation" />
+      <xs:enumeration value="laneMoved" />
+      <xs:enumeration value="laneNotInOperation" />
+      <xs:enumeration value="laneRestrictionInOperation" />
+      <xs:enumeration value="parkingProhibitionInOperation" />
+      <xs:enumeration value="reverseTrafficDirection" />
+      <xs:enumeration value="waitingProhibitionInOperation" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="_RoadworksExtensionType">
+    <xs:sequence>
+      <xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="_SeverityEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:SeverityEnum">
+        <xs:attribute name="_extendedValue" type="xs:string" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="_SituationRecordVersionedReference">
+    <xs:complexContent>
+      <xs:extension base="com:VersionedReference">
+        <xs:attribute name="targetClass" type="xs:string" use="required" fixed="sit:SituationRecord" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="_SituationVersionedReference">
+    <xs:complexContent>
+      <xs:extension base="com:VersionedReference">
+        <xs:attribute name="targetClass" type="xs:string" use="required" fixed="sit:Situation" />
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="_SpeedManagementTypeEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:SpeedManagementTypeEnum">
+        <xs:attribute name="_extendedValue" type="xs:string" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="_TransitServiceInformationEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:TransitServiceInformationEnum">
+        <xs:attribute name="_extendedValue" type="xs:string" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="_TransitServiceTypeEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:TransitServiceTypeEnum">
+        <xs:attribute name="_extendedValue" type="xs:string" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="_VehicleObstructionExtensionType">
+    <xs:sequence>
+      <xs:element name="extendedVehicleObstruction" type="sse:ExtendedVehicleObstruction" minOccurs="0" />
+      <xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="_VehicleObstructionTypeEnum">
+    <xs:simpleContent>
+      <xs:extension base="sit:VehicleObstructionTypeEnum">
+        <xs:attribute name="_extendedValue" type="xs:string" />
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="AbnormalTraffic">
+    <xs:annotation>
+      <xs:documentation>A traffic condition which is not normal.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="sit:TrafficElement">
+        <xs:sequence>
+          <xs:element name="abnormalTrafficType" type="sit:_AbnormalTrafficTypeEnum" minOccurs="0" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>A characterization of the nature of abnormal traffic flow, i.e. specifically relating to the nature of the traffic movement, implying a level of service.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="_abnormalTrafficExtension" type="com:_ExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:simpleType name="AbnormalTrafficTypeEnum">
+    <xs:annotation>
+      <xs:documentation>Descriptive terms for abnormal traffic conditions specifically relating to the nature of the traffic movement, implying levels of service.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="stationaryTraffic">
+        <xs:annotation>
+          <xs:documentation>Traffic is stationary, or very near stationary, at the specified location (i.e. average speed is less than 10% of its free-flow level).</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="slowTraffic">
+        <xs:annotation>
+          <xs:documentation>Traffic is slow moving at the specified location, but not yet forming queues (i.e. average speed is between 25% and 75% of its free-flow level).</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="heavyTraffic">
+        <xs:annotation>
+          <xs:documentation>Traffic is heavy at the specified location (i.e. average speed is between 75% and 90% of its free-flow level).</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="unspecifiedAbnormalTraffic">
+        <xs:annotation>
+          <xs:documentation>There are abnormal traffic conditions of an unspecified nature at the specified location.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="AccidentTypeEnum">
+    <xs:annotation>
+      <xs:documentation>Collection of descriptive terms for types of accidents.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="accident">
+        <xs:annotation>
+          <xs:documentation>Accidents are situations in which one or more vehicles lose control and do not recover.  They include collisions between vehicle(s) or other road user(s), between vehicle(s) and fixed obstacle(s), or they result from a vehicle running off the road.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="AnimalPresenceObstruction">
+    <xs:annotation>
+      <xs:documentation>An obstruction on the road resulting from the presence of animals.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="sit:Obstruction">
+        <xs:sequence>
+          <xs:element name="alive" type="com:Boolean" minOccurs="0" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>Indicates whether the identified animals are dead (immobile) or alive (potentially mobile).</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="animalPresenceType" type="sit:_AnimalPresenceTypeEnum" minOccurs="1" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>Indicates the nature of animals present on or near the roadway.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="_animalPresenceObstructionExtension" type="com:_ExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:simpleType name="AnimalPresenceTypeEnum">
+    <xs:annotation>
+      <xs:documentation>Types of animal presence.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="animalsOnTheRoad">
+        <xs:annotation>
+          <xs:documentation>Traffic may be disrupted due to animals on the roadway.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>  <xs:complexType name="Cause">
+    <xs:annotation>
+      <xs:documentation>Contains details of the cause of a record within a situation</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="causeType" type="sit:_CauseTypeEnum" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Indicates an external influence that may be the causation of components of a situation.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="detailedCauseType" type="sit:DetailedCauseType" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>The type of cause, expressed in more detail than the NonManagedCause causeType. If both are present then they must be consistent.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="managedCause" type="sit:SituationRecordReference" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>A reference to another situation record which defines a cause of the event defined here.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="_causeExtension" type="com:_ExtensionType" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:simpleType name="CauseTypeEnum">
+    <xs:annotation>
+      <xs:documentation>Types of causes of situations which are not managed or are off network.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="abnormalTraffic">
+        <xs:annotation>
+          <xs:documentation>A traffic condition that is not normal.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="accident">
+        <xs:annotation>
+          <xs:documentation>Accident.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="disturbance">
+        <xs:annotation>
+          <xs:documentation>Deliberate human action of either a public disorder nature or of a situation alert type which could disrupt traffic.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="environmentalObstruction">
+        <xs:annotation>
+          <xs:documentation>An obstruction on the road resulting from an environmental cause</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="equipmentOrSystemFault">
+        <xs:annotation>
+          <xs:documentation>Equipment or system which is faulty, malfunctioning or not in a fully operational state</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="infrastructureDamageObstruction">
+        <xs:annotation>
+          <xs:documentation>An obstruction on the road resulting from the failure or damage of infrastructure on, under, above or close to the road</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="obstruction">
+        <xs:annotation>
+          <xs:documentation>Obstruction on the roadway.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="poorEnvironment">
+        <xs:annotation>
+          <xs:documentation>Poor environmental conditions</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="publicEvent">
+        <xs:annotation>
+          <xs:documentation>Organised public event</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="roadMaintenance">
+        <xs:annotation>
+          <xs:documentation>Roadworks involving the maintenance or installation of infrastructure</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="roadOrCarriagewayOrLaneManagement">
+        <xs:annotation>
+          <xs:documentation>Road, carriageway or lane management action instigated by the network/road operator</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="vehicleObstruction">
+        <xs:annotation>
+          <xs:documentation>An obstruction on the road caused by one or more vehicles.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="Comment">
+    <xs:annotation>
+      <xs:documentation>A free text comment with an optional date/time stamp that can be used by the operator to convey un-coded observations/information.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="comment" type="com:MultilingualString" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>A free text comment that can be used by the operator to convey un-coded observations/information.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="commentDateTime" type="com:DateTime" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>The date/time at which the comment was made.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="commentType" type="sit:_CommentTypeEnum" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>A classification of the the type of comment.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="_commentExtension" type="com:_ExtensionType" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:simpleType name="CommentTypeEnum">
+    <xs:annotation>
+      <xs:documentation>Classification of comment types.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="abnormalLoadMovementNote">
+        <xs:annotation>
+          <xs:documentation>A free text human oriented note describing details of abnormal load movements associated with the SituationRecord.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="dataProcessingNote">
+        <xs:annotation>
+          <xs:documentation>A free text human oriented note describing the way the information in the SituationRecord has been or should be processed.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="description">
+        <xs:annotation>
+          <xs:documentation>A free text human oriented description of the situation element defined by the SituationRecord.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="internalNote">
+        <xs:annotation>
+          <xs:documentation>A free text human oriented note that supports internal traffic control operations relating to the situation element defined by the SituationRecord.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="roadworksName">
+        <xs:annotation>
+          <xs:documentation>Human-readable name by which the associated roadworks is known</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="warning">
+        <xs:annotation>
+          <xs:documentation>A free text human oriented warning relating to the SituationRecord, such as advising the recipient that an advanced warning on VMS should be activated.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="other">
+        <xs:annotation>
+          <xs:documentation>Other than as defined in this enumeration.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="ComplianceOptionEnum">
+    <xs:annotation>
+      <xs:documentation>Types of compliance.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="advisory">
+        <xs:annotation>
+          <xs:documentation>Advisory compliance.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="mandatory">
+        <xs:annotation>
+          <xs:documentation>Mandatory compliance.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="Conditions">
+    <xs:annotation>
+      <xs:documentation>Any conditions which have the potential to degrade normal driving conditions.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="sit:TrafficElement">
+        <xs:sequence>
+          <xs:element name="_conditionsExtension" type="com:_ExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:simpleType name="ConstructionWorkTypeEnum">
+    <xs:annotation>
+      <xs:documentation>Types of works relating to construction.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="constructionWork">
+        <xs:annotation>
+          <xs:documentation>Construction work of a general nature at the specified location.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="Delays">
+    <xs:annotation>
+      <xs:documentation>The details of the delays being caused by the situation element defined in the situation record. It is recommended to only use one of the optional attributes to avoid confusion.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="delayTimeValue" type="com:Seconds" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>The value of the additional travel time due to adverse travel conditions of any kind, when compared to "normal conditions", given in seconds.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="_delaysExtension" type="com:_ExtensionType" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DetailedCauseType">
+    <xs:annotation>
+      <xs:documentation>The type of influence that may be the cause of components of a situation. At least one attribute must be populated.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="abnormalTrafficType" type="sit:_AbnormalTrafficTypeEnum" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>A characterization of the nature of abnormal traffic flow, i.e. specifically relating to the nature of the traffic movement.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="accidentType" type="sit:_AccidentTypeEnum" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>A characterization of the nature of the accident.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="disturbanceActivityType" type="sit:_DisturbanceActivityTypeEnum" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Includes all situations of a public disorder type or of an alert type, with potential to disrupt traffic.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="environmentalObstructionType" type="sit:_EnvironmentalObstructionTypeEnum" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Characterization of an obstruction on the road resulting from an environmental cause.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="equipmentOrSystemFaultType" type="sit:_EquipmentOrSystemFaultTypeEnum" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Failure, malfunction or non operational condition of equipment or system.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="infrastructureDamageType" type="sit:_InfrastructureDamageTypeEnum" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Characterization of an obstruction on the road resulting from the failure or damage of infrastructure on, under, above or close to the road.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="obstructionType" type="sit:_ObstructionTypeEnum" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>Characterization of the type of general obstruction.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="poorEnvironmentType" type="sit:_PoorEnvironmentTypeEnum" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>The type of environment condition which is affecting driving conditions.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="publicEventType" type="com:_PublicEventTypeEnum" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Type of public event which could disrupt traffic.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="roadMaintenanceType" type="sit:_RoadMaintenanceTypeEnum" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>The type of road maintenance or installation work at the specified location.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="roadOrCarriagewayOrLaneManagementType" type="sit:_RoadOrCarriagewayOrLaneManagementTypeEnum" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Type of road, carriageway or lane management action instigated by operator.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="vehicleObstructionType" type="sit:_VehicleObstructionTypeEnum" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Characterization of an obstruction on the road caused by one or more vehicles.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="_detailedCauseTypeExtension" type="com:_ExtensionType" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:simpleType name="DisturbanceActivityTypeEnum">
+    <xs:annotation>
+      <xs:documentation>Types of disturbance activities.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="demonstration">
+        <xs:annotation>
+          <xs:documentation>A public protest with the potential to disrupt traffic.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="EnvironmentalObstructionTypeEnum">
+    <xs:annotation>
+      <xs:documentation>Types of environmental obstructions.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="avalanches">
+        <xs:annotation>
+          <xs:documentation>The road may be obstructed or partially obstructed due to snow slides.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="flooding">
+        <xs:annotation>
+          <xs:documentation>The road is obstructed or partially obstructed by flood water.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="forestFire">
+        <xs:annotation>
+          <xs:documentation>Traffic may be disrupted due to a forest fire adjacent to the roadway.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="rockfalls">
+        <xs:annotation>
+          <xs:documentation>The road may be obstructed or partially obstructed due to fallen rocks.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="EquipmentOrSystemFaultTypeEnum">
+    <xs:annotation>
+      <xs:documentation>Types of fault, malfunctioning or non operational conditions of equipment or systems.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="notWorking">
+        <xs:annotation>
+          <xs:documentation>Not working or functioning.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="EquipmentOrSystemTypeEnum">
+    <xs:annotation>
+      <xs:documentation>Types of equipment and systems used to support the operation of the road network.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="anprCameras">
+        <xs:annotation>
+          <xs:documentation>Automatic number plate recognition cameras.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="automatedTollSystem">
+        <xs:annotation>
+          <xs:documentation>Automated toll system.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="cctvCameras">
+        <xs:annotation>
+          <xs:documentation>Closed-circuit television cameras.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="emergencyRoadsideTelephones">
+        <xs:annotation>
+          <xs:documentation>Emergency roadside telephones.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="fireDetectionEquipment">
+        <xs:annotation>
+          <xs:documentation>Fire detection equipment</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="galleryLights">
+        <xs:annotation>
+          <xs:documentation>Gallery lights.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="laneControlSigns">
+        <xs:annotation>
+          <xs:documentation>Signs used to control lane usage (e.g. in tidal flow systems or hard shoulder running).</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="levelCrossing">
+        <xs:annotation>
+          <xs:documentation>Level crossing (barriers and signals).</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="matrixSigns">
+        <xs:annotation>
+          <xs:documentation>Matrix signs. These normally comprise a symbol display area surrounded by four lights (usually amber) which flash when a symbol is displayed. </xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="rampControls">
+        <xs:annotation>
+          <xs:documentation>Ramp control equipment.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="roadsideCommunicationsSystem">
+        <xs:annotation>
+          <xs:documentation>Roadside communications system which is used by one or more roadside equipments or systems.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="roadsidePowerSystem">
+        <xs:annotation>
+          <xs:documentation>Roadside power system which is used by one or more roadside equipments or systems.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="speedControlSigns">
+        <xs:annotation>
+          <xs:documentation>Signs used to control traffic speed.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="streetLighting">
+        <xs:annotation>
+          <xs:documentation>Street or road lighting.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="temporaryTrafficLights">
+        <xs:annotation>
+          <xs:documentation>Temporary traffic lights.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="tollGates">
+        <xs:annotation>
+          <xs:documentation>Toll gates.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="trafficLightSets">
+        <xs:annotation>
+          <xs:documentation>Sets of traffic lights.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="trafficSignals">
+        <xs:annotation>
+          <xs:documentation>Traffic signals.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="tunnelEmergencyPhones">
+        <xs:annotation>
+          <xs:documentation>Tunnel emergency telephones</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="tunnelFireFightingEquipment">
+        <xs:annotation>
+          <xs:documentation>Tunnel fire fighting equipment</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="tunnelLights">
+        <xs:annotation>
+          <xs:documentation>Tunnel lights.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="tunnelMobileCommunication">
+        <xs:annotation>
+          <xs:documentation>Tunnel mobile coverage communication equipment</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="tunnelRadioCommunication">
+        <xs:annotation>
+          <xs:documentation>Tunnel radio communication equipment</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="tunnelSafetySystem">
+        <xs:annotation>
+          <xs:documentation>Any tunnel safety system</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="tunnelVentilation">
+        <xs:annotation>
+          <xs:documentation>Tunnel ventilation system.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="variableMessageSigns">
+        <xs:annotation>
+          <xs:documentation>Variable message signs.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="other">
+        <xs:annotation>
+          <xs:documentation>Other than as defined in this enumeration.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="GeneralInstructionOrMessageToRoadUsers">
+    <xs:annotation>
+      <xs:documentation>General instruction and/or message that is issued by the network/road operator which is applicable to drivers and sometimes passengers.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="sit:NetworkManagement">
+        <xs:sequence>
+          <xs:element name="generalInstructionToRoadUsersType" type="sit:_GeneralInstructionToRoadUsersTypeEnum" minOccurs="0" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>General instruction that is issued by the network/road operator which is applicable to drivers and sometimes passengers.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="generalMessageToRoadUsers" type="com:MultilingualString" minOccurs="0" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>General message that is issued by the network/road operator which is applicable to drivers and sometimes passengers, e.g. details about an amber alert (missing or abducted child alert).</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="_generalInstructionOrMessageToRoadUsersExtension" type="com:_ExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:simpleType name="GeneralInstructionToRoadUsersTypeEnum">
+    <xs:annotation>
+      <xs:documentation>General instructions that may be issued to road users (specifically drivers and sometimes passengers) by an operator or operational system in support of network management activities or emergency situations.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="allowEmergencyVehiclesToPass">
+        <xs:annotation>
+          <xs:documentation>Allow emergency vehicles to pass.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="driveCarefully">
+        <xs:annotation>
+          <xs:documentation>Drive carefully.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="noOvertaking">
+        <xs:annotation>
+          <xs:documentation>No overtaking on the specified section of road.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="GeneralObstruction">
+    <xs:annotation>
+      <xs:documentation>Any stationary or moving obstacle of a physical nature, other than of an animal, vehicle, environmental, or damaged equipment nature.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="sit:Obstruction">
+        <xs:sequence>
+          <xs:element name="obstructionType" type="sit:_ObstructionTypeEnum" minOccurs="1" maxOccurs="unbounded">
+            <xs:annotation>
+              <xs:documentation>Characterization of the type of general obstruction.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="_generalObstructionExtension" type="com:_ExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="GenericSituationRecord">
+    <xs:annotation>
+      <xs:documentation>A generic SituationRecord for use when adding level B extensions at the SituationRecord level.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="sit:SituationRecord">
+        <xs:sequence>
+          <xs:element name="genericSituationRecordName" type="com:String" minOccurs="1" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>The name of the GenericSituationRecord.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="_genericSituationRecordExtension" type="com:_ExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="Impact">
+    <xs:annotation>
+      <xs:documentation>An assessment of the impact that an event or operator action defined by the situation record has on the driving conditions.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="delays" type="sit:Delays" minOccurs="0" />
+      <xs:element name="_impactExtension" type="sit:_ImpactExtensionType" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:simpleType name="InfrastructureDamageTypeEnum">
+    <xs:annotation>
+      <xs:documentation>Types of infrastructure damage which may have an effect on the road network.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="damagedRoadSurface">
+        <xs:annotation>
+          <xs:documentation>Damage to the road surface that may cause traffic disruption.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="MaintenanceWorks">
+    <xs:annotation>
+      <xs:documentation>Roadworks involving the maintenance or installation of infrastructure.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="sit:Roadworks">
+        <xs:sequence>
+          <xs:element name="roadMaintenanceType" type="sit:_RoadMaintenanceTypeEnum" minOccurs="1" maxOccurs="unbounded">
+            <xs:annotation>
+              <xs:documentation>The type of road maintenance or installation work at the specified location.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="_maintenanceWorksExtension" type="com:_ExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="Mobility">
+    <xs:annotation>
+      <xs:documentation>An indication of whether the associated instance of a SituationRecord is mobile (e.g. a march or parade moving along a road) or stationary.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="mobilityType" type="sit:_MobilityTypeEnum" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>An indication of whether the associated instance of a SituationRecord is mobile (e.g. a march or parade moving along a road) or stationary.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="_mobilityExtension" type="com:_ExtensionType" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:simpleType name="MobilityTypeEnum">
+    <xs:annotation>
+      <xs:documentation>Types of mobility relating to a situation element defined by a SituationReord.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="mobile">
+        <xs:annotation>
+          <xs:documentation>The described element of a situation is moving.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="stationary">
+        <xs:annotation>
+          <xs:documentation>The described element of a situation is stationary.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="unknown">
+        <xs:annotation>
+          <xs:documentation>The mobility of the described element of a situation is unknown.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="NetworkManagement" abstract="true">
+    <xs:annotation>
+      <xs:documentation>Network management action which is applicable to the road network and its users.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="sit:OperatorAction">
+        <xs:sequence>
+          <xs:element name="complianceOption" type="sit:_ComplianceOptionEnum" minOccurs="1" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>Defines whether the network management instruction or the control resulting from a network management action is advisory or mandatory.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="forVehiclesWithCharacteristicsOf" type="com:VehicleCharacteristics" minOccurs="0" maxOccurs="unbounded">
+            <xs:annotation>
+              <xs:documentation>The characteristics of those vehicles for which the network management is applicable.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="_networkManagementExtension" type="sit:_NetworkManagementExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="NonWeatherRelatedRoadConditions">
+    <xs:complexContent>
+      <xs:extension base="sit:RoadSurfaceConditions">
+        <xs:sequence>
+          <xs:element name="nonWeatherRelatedRoadConditionType" type="sit:_NonWeatherRelatedRoadConditionTypeEnum" minOccurs="1" maxOccurs="unbounded" />
+          <xs:element name="_nonWeatherRelatedRoadConditionsExtension" type="com:_ExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:simpleType name="NonWeatherRelatedRoadConditionTypeEnum">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="dieselOnRoad" />
+      <xs:enumeration value="leavesOnRoad" />
+      <xs:enumeration value="looseChippings" />
+      <xs:enumeration value="looseSandOnRoad" />
+      <xs:enumeration value="mudOnRoad" />
+      <xs:enumeration value="oilOnRoad" />
+      <xs:enumeration value="petrolOnRoad" />
+      <xs:enumeration value="roadMarkingNotPresent" />
+      <xs:enumeration value="roadSurfaceInPoorCondition" />
+      <xs:enumeration value="slipperyRoad" />
+      <xs:enumeration value="other" />
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="Obstruction" abstract="true">
+    <xs:complexContent>
+      <xs:extension base="sit:TrafficElement">
+        <xs:sequence>
+          <xs:element name="numberOfObstructions" type="com:NonNegativeInteger" minOccurs="0" maxOccurs="1" />
+          <xs:element name="mobilityOfObstruction" type="sit:Mobility" minOccurs="0" />
+          <xs:element name="_obstructionExtension" type="com:_ExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:simpleType name="ObstructionTypeEnum">
+    <xs:annotation>
+      <xs:documentation>Types of obstructions on the roadway.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="cyclistsOnRoadway">
+        <xs:annotation>
+          <xs:documentation>Cyclists on the roadway which may cause traffic disruption.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="objectOnTheRoad">
+        <xs:annotation>
+          <xs:documentation>The road may be obstructed or traffic hindered due to objects laying on the roadway.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="obstructionOnTheRoad">
+        <xs:annotation>
+          <xs:documentation>Unspecified obstruction on the roadway which may cause traffic disruption.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="peopleOnRoadway">
+        <xs:annotation>
+          <xs:documentation>People on the roadway which may cause traffic disruption.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="shedLoad">
+        <xs:annotation>
+          <xs:documentation>Spillage of transported goods on the roadway which may cause traffic disruption.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="spillageOnTheRoad">
+        <xs:annotation>
+          <xs:documentation>Includes all situations where a spillage has occurred on the roadway due to an earlier incident.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="OperatorAction" abstract="true">
+    <xs:annotation>
+      <xs:documentation>Actions that an authorised operator can decide to implement to prevent or help correct dangerous or poor driving conditions, or any actions affecting normal operation of a road.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="sit:SituationRecord">
+        <xs:sequence>
+          <xs:element name="_operatorActionExtension" type="sit:_OperatorActionExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="PoorEnvironmentConditions">
+    <xs:complexContent>
+      <xs:extension base="sit:Conditions">
+        <xs:sequence>
+          <xs:element name="poorEnvironmentType" type="sit:_PoorEnvironmentTypeEnum" minOccurs="1" maxOccurs="unbounded" />
+          <xs:element name="_poorEnvironmentConditionsExtension" type="com:_ExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:simpleType name="PoorEnvironmentTypeEnum">
+    <xs:annotation>
+      <xs:documentation>Types of poor environmental conditions.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="badWeather">
+        <xs:annotation>
+          <xs:documentation>Adverse weather conditions are affecting driving conditions.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="fog">
+        <xs:annotation>
+          <xs:documentation>Fog, visibility more than 50m.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="frost">
+        <xs:annotation>
+          <xs:documentation>Frost can be expected.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="gustyWinds">
+        <xs:annotation>
+          <xs:documentation>Constantly varying winds, significant at times.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="hail">
+        <xs:annotation>
+          <xs:documentation>Falling ice pellets or frozen rain.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="rain">
+        <xs:annotation>
+          <xs:documentation>Rain, visibility more than 50m.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="smokeHazard">
+        <xs:annotation>
+          <xs:documentation>Smoke drifting across the roadway causing significantly reduced visibility.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="snowfall">
+        <xs:annotation>
+          <xs:documentation>Falling snow, visibility more than 50m.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="strongWinds">
+        <xs:annotation>
+          <xs:documentation>Winds between 40 km/h and 60 km/h.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="visibilityReduced">
+        <xs:annotation>
+          <xs:documentation>Environmental conditions causing reduced visibility.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="ProbabilityOfOccurrenceEnum">
+    <xs:annotation>
+      <xs:documentation>Levels of confidence that the sender has in the information, ordered {certain, probable, risk of}.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="certain">
+        <xs:annotation>
+          <xs:documentation>The source is completely certain of the occurrence of the situation record version content.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="probable">
+        <xs:annotation>
+          <xs:documentation>The source has a reasonably high level of confidence of the occurrence of the situation record version content.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="riskOf">
+        <xs:annotation>
+          <xs:documentation>The source has a moderate level of confidence of the occurrence of the situation record version content.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="RoadMaintenanceTypeEnum">
+    <xs:annotation>
+      <xs:documentation>Types of road maintenance.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="maintenanceWork">
+        <xs:annotation>
+          <xs:documentation>Maintenance of road, associated infrastructure or equipments.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="roadworks">
+        <xs:annotation>
+          <xs:documentation>Road maintenance or improvement activity of an unspecified nature which may potentially cause traffic disruption.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="snowploughsInUse">
+        <xs:annotation>
+          <xs:documentation>Snowploughs or other similar mechanical devices in use to clear snow from the road.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="RoadOrCarriagewayOrLaneManagement">
+    <xs:annotation>
+      <xs:documentation>Road, carriageway or lane management action that is instigated by the network/road operator.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="sit:NetworkManagement">
+        <xs:sequence>
+          <xs:element name="roadOrCarriagewayOrLaneManagementType" type="sit:_RoadOrCarriagewayOrLaneManagementTypeEnum" minOccurs="1" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>Type of road, carriageway or lane management action instigated by operator.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="minimumCarOccupancy" type="com:NonNegativeInteger" minOccurs="0" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>The minimum number of persons required in a vehicle in order for it to be allowed to transit the specified road section.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="_roadOrCarriagewayOrLaneManagementExtension" type="com:_ExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:simpleType name="RoadOrCarriagewayOrLaneManagementTypeEnum">
+    <xs:annotation>
+      <xs:documentation>Management actions relating to road, carriageway or lane usage.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="carriagewayClosures">
+        <xs:annotation>
+          <xs:documentation>Carriageway closures are in operation at the specified location.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="clearALaneForEmergencyVehicles">
+        <xs:annotation>
+          <xs:documentation>Clear a lane for emergency vehicles.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="doNotUseSpecifiedLanesOrCarriageways">
+        <xs:annotation>
+          <xs:documentation>Do not use the specified lane(s) or carriageway(s).</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="heightRestrictionInOperation">
+        <xs:annotation>
+          <xs:documentation>A height restriction is in operation.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="intermittentShortTermClosures">
+        <xs:annotation>
+          <xs:documentation>Road closures occur intermittently on the specified road in the specified direction for short durations.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="keepToTheLeft">
+        <xs:annotation>
+          <xs:documentation>Keep to the left.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="keepToTheRight">
+        <xs:annotation>
+          <xs:documentation>Keep to the right.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="laneClosures">
+        <xs:annotation>
+          <xs:documentation>Lane closures are in operation at the specified location for vehicles with the specified characteristics or all, if none defined, in the specified direction.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="lanesDeviated">
+        <xs:annotation>
+          <xs:documentation>Lane deviations are in operation at the specified location.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="narrowLanes">
+        <xs:annotation>
+          <xs:documentation>Normal lane widths are temporarily reduced.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="newRoadworksLayout">
+        <xs:annotation>
+          <xs:documentation>A new layout of lanes/carriageway has been implemented associated with roadworks.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="roadClosed">
+        <xs:annotation>
+          <xs:documentation>The road is closed to vehicles with the specified characteristics or all, if none defined, in the specified direction.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="singleAlternateLineTraffic">
+        <xs:annotation>
+          <xs:documentation>Traffic is being controlled to move in alternate single lines. This control may be undertaken by traffic lights or flagman.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="useOfSpecifiedLanesOrCarriagewaysAllowed">
+        <xs:annotation>
+          <xs:documentation>The specified lane(s) or carriageway(s) may be used. The normal lane(s) or carriageway(s) restrictions are not currently in force.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="vehicleStorageInOperation">
+        <xs:annotation>
+          <xs:documentation>Vehicles are being stored on the roadway and/or at a rest area or service area at the specified location.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="weightRestrictionInOperation">
+        <xs:annotation>
+          <xs:documentation>A weight restriction is in operation.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="other">
+        <xs:annotation>
+          <xs:documentation>Other than as defined in this enumeration.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="RoadSurfaceConditions" abstract="true">
+    <xs:complexContent>
+      <xs:extension base="sit:Conditions">
+        <xs:sequence>
+          <xs:element name="_roadSurfaceConditionsExtension" type="com:_ExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="Roadworks" abstract="true">
+    <xs:annotation>
+      <xs:documentation>Road maintenance, installation and construction activities, works in the road, or other construction or maintenance actions that may affect normal operation of a road.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="sit:OperatorAction">
+        <xs:sequence>
+          <xs:element name="mobility" type="sit:Mobility" minOccurs="0" />
+          <xs:element name="_roadworksExtension" type="sit:_RoadworksExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="ServiceInformation" abstract="true">
+    <xs:annotation>
+      <xs:documentation>Information about a service which may influence the behaviour of drivers and hence the characteristics of the traffic flow.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="sit:SituationRecord">
+        <xs:sequence>
+          <xs:element name="_serviceInformationExtension" type="com:_ExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:simpleType name="SeverityEnum">
+    <xs:annotation>
+      <xs:documentation>Levels of severity of a situation as whole assessed by the impact that the situation may have on traffic flow as perceived by the supplier.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="highest">
+        <xs:annotation>
+          <xs:documentation>Perceived by supplier as being of the highest level.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="high">
+        <xs:annotation>
+          <xs:documentation>Perceived by supplier as being of a high level.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="medium">
+        <xs:annotation>
+          <xs:documentation>Perceived by supplier as being of a medium level.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="low">
+        <xs:annotation>
+          <xs:documentation>Perceived by supplier as being of a low level.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="unknown">
+        <xs:annotation>
+          <xs:documentation>Perceived by supplier as being of an unknown level.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="Situation">
+    <xs:annotation>
+      <xs:documentation>An identifiable instance of a traffic/travel situation comprising one or more traffic/travel circumstances which are linked by one or more causal relationships. Each traffic/travel circumstance is represented by a Situation Record.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="overallSeverity" type="sit:_SeverityEnum" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>The overall assessment of the impact (in terms of severity) that the situation as a whole is having, or will have, on the traffic flow as perceived by the supplier.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="headerInformation" type="com:HeaderInformation" />
+      <xs:element name="situationRecord" type="sit:SituationRecord" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>Details of the Situation</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="relatedSituation" type="sit:SituationReference" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>Reference to related situations via unique identifiers.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="_situationExtension" type="com:_ExtensionType" minOccurs="0" />
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:string" use="required" />
+  </xs:complexType>
+  <xs:complexType name="SituationPublication">
+    <xs:annotation>
+      <xs:documentation>A publication containing zero or more traffic/travel situations.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="com:PayloadPublication">
+        <xs:sequence>
+          <xs:element name="situation" type="sit:Situation" minOccurs="0" maxOccurs="unbounded" />
+          <xs:element name="_situationPublicationExtension" type="com:_ExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="SituationRecord" abstract="true">
+    <xs:annotation>
+      <xs:documentation>An identifiable versioned instance of a single record/element within a situation.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element name="situationRecordCreationReference" type="com:String" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>A unique alphanumeric reference (e.g. an external reference or a UUID) of the SituationRecord object (the first version of the record) that was created by the original supplier.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="situationRecordCreationTime" type="com:DateTime" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>The date/time that the SituationRecord object (the first version of the record) was created by the original supplier.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="situationRecordVersionTime" type="com:DateTime" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>The date/time that this current version of the SituationRecord within the situation was written into the database of the supplier which is involved in the data exchange. Identity and version of record are defined by the class stereotype implementation.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="probabilityOfOccurrence" type="sit:_ProbabilityOfOccurrenceEnum" minOccurs="1" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>An assessment of the degree of likelihood that the reported event will occur.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="severity" type="sit:_SeverityEnum" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>The assessment of the impact (in terms of severity) that this element of the situation is having, or will have, on the traffic flow as perceived by the supplier.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="safetyRelatedMessage" type="com:Boolean" minOccurs="0" maxOccurs="1">
+        <xs:annotation>
+          <xs:documentation>Indicates whether this SituationRecord specifies a safety-related traffic situation. At least all traffic situations governed by Commission Delegated Regulation (EU) No 886/2013 shall be indicated.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="source" type="com:Source" minOccurs="0" />
+      <xs:element name="validity" type="com:Validity" />
+      <xs:element name="impact" type="sit:Impact" minOccurs="0">
+        <xs:annotation>
+          <xs:documentation>Impact of the situation element</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="cause" type="sit:Cause" minOccurs="0" />
+      <xs:element name="generalPublicComment" type="sit:Comment" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>A comment which may be freely distributed to the general public</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="nonGeneralPublicComment" type="sit:Comment" minOccurs="0" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>A comment which should not be distributed to the general public.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+      <xs:element name="locationReference" type="loc:LocationReference" />
+      <xs:element name="_situationRecordExtension" type="com:_ExtensionType" minOccurs="0" />
+    </xs:sequence>
+    <xs:attribute name="id" type="xs:string" use="required" />
+    <xs:attribute name="version" type="xs:string" use="required" />
+  </xs:complexType>
+  <xs:complexType name="SituationRecordReference">
+    <xs:annotation>
+      <xs:documentation>Reference to a SituationRecord</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="com:GlobalReference">
+        <xs:sequence>
+          <xs:element name="objectReference" type="sit:_SituationRecordVersionedReference" minOccurs="1" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>A reference to a specific versioned identifiable object, which may be in this publication or an external publication</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="_situationRecordReferenceExtension" type="com:_ExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="SituationReference">
+    <xs:annotation>
+      <xs:documentation>Reference to a Situation</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="com:GlobalReference">
+        <xs:sequence>
+          <xs:element name="objectReference" type="sit:_SituationVersionedReference" minOccurs="1" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>A reference to a specific versioned identifiable object, which may be in this publication or an external publication</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="_situationReferenceExtension" type="com:_ExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="SpeedManagement">
+    <xs:annotation>
+      <xs:documentation>Speed management action that is instigated by the network/road operator.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="sit:NetworkManagement">
+        <xs:sequence>
+          <xs:element name="speedManagementType" type="sit:_SpeedManagementTypeEnum" minOccurs="0" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>Type of speed management action instigated by operator.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="temporarySpeedLimit" type="com:KilometresPerHour" minOccurs="0" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>Temporary limit defining the maximum advisory or mandatory speed of vehicles.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="_speedManagementExtension" type="com:_ExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:simpleType name="SpeedManagementTypeEnum">
+    <xs:annotation>
+      <xs:documentation>Management actions relating to speed.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="reduceYourSpeed">
+        <xs:annotation>
+          <xs:documentation>Reduce your speed.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="speedRestrictionInOperation">
+        <xs:annotation>
+          <xs:documentation>A speed restriction is in operation.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="TrafficElement" abstract="true">
+    <xs:annotation>
+      <xs:documentation>An event which is not planned by the traffic operator, which is affecting, or has the potential to affect traffic flow.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="sit:SituationRecord">
+        <xs:sequence>
+          <xs:element name="_trafficElementExtension" type="com:_ExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="TransitInformation">
+    <xs:annotation>
+      <xs:documentation>The availability of transit services and information relating to their departures. This is limited to those transit services which are of direct relevance to road users, e.g. connecting rail or ferry services.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="sit:ServiceInformation">
+        <xs:sequence>
+          <xs:element name="transitServiceInformation" type="sit:_TransitServiceInformationEnum" minOccurs="1" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>Information about transit services.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="transitServiceType" type="sit:_TransitServiceTypeEnum" minOccurs="1" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>The type of transit service to which the information relates.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="_transitInformationExtension" type="com:_ExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:simpleType name="TransitServiceInformationEnum">
+    <xs:annotation>
+      <xs:documentation>Types of public transport information.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="serviceDelays">
+        <xs:annotation>
+          <xs:documentation>The specified service is subject to delays.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="TransitServiceTypeEnum">
+    <xs:annotation>
+      <xs:documentation>Types of transport services available to the general public.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="ferry">
+        <xs:annotation>
+          <xs:documentation>Ferry service.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="VehicleObstruction">
+    <xs:complexContent>
+      <xs:extension base="sit:Obstruction">
+        <xs:sequence>
+          <xs:element name="vehicleObstructionType" type="sit:_VehicleObstructionTypeEnum" minOccurs="1" maxOccurs="1" />
+          <xs:element name="_vehicleObstructionExtension" type="sit:_VehicleObstructionExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:simpleType name="VehicleObstructionTypeEnum">
+    <xs:annotation>
+      <xs:documentation>Types of obstructions involving vehicles.</xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="slowVehicle">
+        <xs:annotation>
+          <xs:documentation>A vehicle travelling at well below normal highway speeds which may cause traffic disruption.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="vehicleOnFire">
+        <xs:annotation>
+          <xs:documentation>A vehicle is or has been on fire and may cause traffic disruption.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="vehicleCarryingHazardousMaterials">
+        <xs:annotation>
+          <xs:documentation>Vehicles carrying materials of a hazardous nature are present and these could expose road users to additional hazards.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="vehicleOnWrongCarriageway">
+        <xs:annotation>
+          <xs:documentation>A vehicle is travelling the wrong way along a divided highway (i.e. on the wrong side).</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="vehicleStuck">
+        <xs:annotation>
+          <xs:documentation>One or more vehicles are stuck (i.e. unable to move) due to environmental conditions such as a snow drift or severe icy road.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="vehicleWithOverwideLoad">
+        <xs:annotation>
+          <xs:documentation>A vehicle of width greater than that normally allowed which may cause traffic disruption.</xs:documentation>
+        </xs:annotation>
+      </xs:enumeration>
+      <xs:enumeration value="_extended" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="WinterDrivingManagement">
+    <xs:annotation>
+      <xs:documentation>Winter driving management action that is instigated by the network/road operator.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="sit:NetworkManagement">
+        <xs:sequence>
+          <xs:element name="winterEquipmentManagementType" type="com:_WinterEquipmentManagementTypeEnum" minOccurs="1" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>Type of winter equipment management action instigated by operator.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element name="_winterDrivingManagementExtension" type="com:_ExtensionType" minOccurs="0" />
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+</xs:schema>

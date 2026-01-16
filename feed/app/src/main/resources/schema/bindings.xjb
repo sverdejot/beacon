@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jxb:bindings version="3.0"
+              xmlns:jxb="https://jakarta.ee/xml/ns/jaxb"
+              xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+    <jxb:bindings schemaLocation="LevelC_3_Common.xsd">
+        <jxb:schemaBindings>
+            <jxb:package name="com.beacon.schema.common"/>
+        </jxb:schemaBindings>
+    </jxb:bindings>
+
+    <jxb:bindings schemaLocation="LevelC_3_CommonExtension.xsd">
+        <jxb:schemaBindings>
+            <jxb:package name="com.beacon.schema.commonext"/>
+        </jxb:schemaBindings>
+    </jxb:bindings>
+
+    <jxb:bindings schemaLocation="LevelC_3_CommonSpanishExtension.xsd">
+        <jxb:schemaBindings>
+            <jxb:package name="com.beacon.schema.spanishcommon"/>
+        </jxb:schemaBindings>
+    </jxb:bindings>
+
+    <jxb:bindings schemaLocation="LevelC_3_LocationReferencing.xsd">
+        <jxb:schemaBindings>
+            <jxb:package name="com.beacon.schema.location"/>
+        </jxb:schemaBindings>
+    </jxb:bindings>
+
+    <jxb:bindings schemaLocation="LevelC_3_LocationExtension.xsd">
+        <jxb:schemaBindings>
+            <jxb:package name="com.beacon.schema.locationext"/>
+        </jxb:schemaBindings>
+    </jxb:bindings>
+
+    <jxb:bindings schemaLocation="LevelC_3_LocationReferencingSpanishExtension.xsd">
+        <jxb:schemaBindings>
+            <jxb:package name="com.beacon.schema.spanishloc"/>
+        </jxb:schemaBindings>
+    </jxb:bindings>
+
+    <jxb:bindings schemaLocation="LevelC_3_Situation.xsd">
+        <jxb:schemaBindings>
+            <jxb:package name="com.beacon.schema.situation"/>
+        </jxb:schemaBindings>
+    </jxb:bindings>
+
+    <jxb:bindings schemaLocation="LevelC_3_SituationSpanishExtension.xsd">
+        <jxb:schemaBindings>
+            <jxb:package name="com.beacon.schema.spanishsit"/>
+        </jxb:schemaBindings>
+    </jxb:bindings>
+
+    <jxb:bindings schemaLocation="LevelC_3_D2Payload.xsd">
+        <jxb:schemaBindings>
+            <jxb:package name="com.beacon.schema.payload"/>
+        </jxb:schemaBindings>
+    </jxb:bindings>
+
+    <jxb:bindings schemaLocation="DATEXII_3_MessageContainer.xsd">
+        <jxb:schemaBindings>
+            <jxb:package name="com.beacon.schema.container"/>
+        </jxb:schemaBindings>
+    </jxb:bindings>
+
+    <jxb:bindings schemaLocation="DATEXII_3_ExchangeInformation.xsd">
+        <jxb:schemaBindings>
+            <jxb:package name="com.beacon.schema.exchange"/>
+        </jxb:schemaBindings>
+    </jxb:bindings>
+
+    <jxb:bindings schemaLocation="DATEXII_3_CISInformation.xsd">
+        <jxb:schemaBindings>
+            <jxb:package name="com.beacon.schema.cis"/>
+        </jxb:schemaBindings>
+    </jxb:bindings>
+
+    <jxb:bindings schemaLocation="DATEXII_3_InformationManagement.xsd">
+        <jxb:schemaBindings>
+            <jxb:package name="com.beacon.schema.infomanagement"/>
+        </jxb:schemaBindings>
+    </jxb:bindings>
+</jxb:bindings>

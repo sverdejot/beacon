@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<xs:schema elementFormDefault="qualified" attributeFormDefault="unqualified" xmlns:d2="http://levelC/schema/3/d2Payload" version="3.6" 
+targetNamespace="http://levelC/schema/3/d2Payload" 
+xmlns:com="http://levelC/schema/3/common" 
+xmlns:comx="http://levelC/schema/3/commonExtension" 
+xmlns:locx="http://levelC/schema/3/locationExtension" 
+xmlns:loc="http://levelC/schema/3/locationReferencing" 
+xmlns:sit="http://levelC/schema/3/situation"
+xmlns:cse="http://levelC/schema/3/commonSpanishExtension" 
+xmlns:lse="http://levelC/schema/3/locationReferencingSpanishExtension" 
+xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:import namespace="http://levelC/schema/3/situation" schemaLocation="LevelC_3_Situation.xsd" />
+  <xs:import namespace="http://levelC/schema/3/locationReferencing" schemaLocation="LevelC_3_LocationReferencing.xsd" />
+  <xs:import namespace="http://levelC/schema/3/locationExtension" schemaLocation="LevelC_3_LocationExtension.xsd" />
+  <xs:import namespace="http://levelC/schema/3/commonExtension" schemaLocation="LevelC_3_CommonExtension.xsd" />
+  <xs:import namespace="http://levelC/schema/3/common" schemaLocation="LevelC_3_Common.xsd" />
+  <xs:import namespace="http://levelC/schema/3/commonSpanishExtension" schemaLocation="LevelC_3_CommonSpanishExtension.xsd" />
+  <xs:import namespace="http://levelC/schema/3/locationReferencingSpanishExtension" schemaLocation="LevelC_3_LocationReferencingSpanishExtension.xsd" />
+  <xs:element name="payload" type="com:PayloadPublication">
+    <xs:unique name="_payloadSituationRecordConstraint">
+      <xs:selector xpath=".//sit:situationRecord" />
+      <xs:field xpath="@id" />
+      <xs:field xpath="@version" />
+    </xs:unique>
+    <xs:unique name="_payloadSituationConstraint">
+      <xs:selector xpath=".//sit:situation" />
+      <xs:field xpath="@id" />
+    </xs:unique>
+  </xs:element>
+</xs:schema>
