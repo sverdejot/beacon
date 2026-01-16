@@ -1,0 +1,11 @@
+[tools]
+go = "latest"
+golangci-lint = "latest"
+kotlin = "latest"
+gradle = "latest"
+graalvm = "latest"
+
+
+[settings]
+experimental = true
+auto_install = true
