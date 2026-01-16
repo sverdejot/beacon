@@ -1,0 +1,27 @@
+services:
+  feed:
+    build: feed
+    environment:
+      MQTT_BROKER: tcp://broker:1883
+    depends_on:
+      health:
+        condition: service_completed_successfully
+
+  broker:
+    image: hivemq/hivemq-ce:latest
+
+  health:
+    image: hivemq/mqtt-cli
+    command: test -h broker
+    restart: on-failure
+
+  ui:
+    image: terdia07/mqttui:latest
+    ports:
+      - 8080:5000
+    environment:
+      MQTT_BROKER: broker
+      MQTT_PORT: 1883
+    depends_on:
+      health:
+        condition: service_completed_successfully
