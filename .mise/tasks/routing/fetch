@@ -1,0 +1,5 @@
+# .mise/tasks/routing/fetch
+#!/usr/bin/env bash
+
+wget https://download/geofabrik.de/europe/spain-latest.osm.pbf
+
