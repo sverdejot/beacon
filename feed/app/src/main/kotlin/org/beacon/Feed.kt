@@ -23,6 +23,8 @@ import com.beacon.schema.location.TpegNonJunctionPointExtensionType
 import com.beacon.schema.location.TpegPoint
 import com.beacon.schema.location.TpegPointLocation
 import com.beacon.schema.location.TpegSimplePoint
+import com.beacon.schema.location.RoadInformation
+import com.beacon.schema.spanishloc.ExtendedTpegNonJunctionPoint
 import com.beacon.schema.situation.AbnormalTraffic
 import com.beacon.schema.situation.AbnormalTrafficTypeEnum
 import com.beacon.schema.situation.AnimalPresenceObstruction
@@ -87,8 +89,12 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonUnwrapped
 import com.fasterxml.jackson.annotation.JsonValue
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationModule
 import jakarta.xml.bind.JAXBContext
 import jakarta.xml.bind.JAXBElement
@@ -115,8 +121,37 @@ private const val MQTT_CLIENT_ID = "datex-feed"
 private const val MQTT_TOPIC_PREFIX = "datex/situations"
 private const val POLL_INTERVAL_SECONDS = 60L
 
+// Custom serializer for DetailedCauseType - flattens all subtypes into a single array
+private class DetailedCauseTypeSerializer : JsonSerializer<DetailedCauseType>() {
+    override fun serialize(value: DetailedCauseType?, gen: JsonGenerator, serializers: SerializerProvider) {
+        if (value == null) {
+            gen.writeNull()
+            return
+        }
+
+        val subtypes = mutableListOf<String>()
+
+        // Collect all non-null enum values
+        value.abnormalTrafficType?.value?.value()?.let { subtypes.add(it) }
+        value.accidentType?.forEach { it?.value?.value()?.let { v -> subtypes.add(v) } }
+        value.disturbanceActivityType?.value?.value()?.let { subtypes.add(it) }
+        value.environmentalObstructionType?.value?.value()?.let { subtypes.add(it) }
+        value.equipmentOrSystemFaultType?.value?.value()?.let { subtypes.add(it) }
+        value.infrastructureDamageType?.value?.value()?.let { subtypes.add(it) }
+        value.obstructionType?.forEach { it?.value?.value()?.let { v -> subtypes.add(v) } }
+        value.poorEnvironmentType?.forEach { it?.value?.value()?.let { v -> subtypes.add(v) } }
+        value.publicEventType?.value?.value()?.let { subtypes.add(it) }
+        value.roadMaintenanceType?.forEach { it?.value?.value()?.let { v -> subtypes.add(v) } }
+        value.roadOrCarriagewayOrLaneManagementType?.value?.value()?.let { subtypes.add(it) }
+        value.vehicleObstructionType?.value?.value()?.let { subtypes.add(it) }
+
+        gen.writeObject(subtypes)
+    }
+}
+
 private val objectMapper: ObjectMapper = ObjectMapper()
     .registerModule(JaxbAnnotationModule())
+    .registerModule(SimpleModule().addSerializer(DetailedCauseType::class.java, DetailedCauseTypeSerializer()))
     .enable(SerializationFeature.INDENT_OUTPUT)
     .setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
     // SituationRecord mixins
@@ -150,7 +185,9 @@ private val objectMapper: ObjectMapper = ObjectMapper()
     .addMixIn(TpegPoint::class.java, TpegPointMixin::class.java)
     .addMixIn(TpegNonJunctionPoint::class.java, TpegNonJunctionPointMixin::class.java)
     .addMixIn(TpegNonJunctionPointExtensionType::class.java, TpegNonJunctionPointExtensionMixin::class.java)
+    .addMixIn(ExtendedTpegNonJunctionPoint::class.java, ExtendedTpegNonJunctionPointMixin::class.java)
     .addMixIn(TpegPointLocation::class.java, TpegPointLocationMixin::class.java)
+    .addMixIn(RoadInformation::class.java, RoadInformationMixin::class.java)
     .addMixIn(TpegSimplePoint::class.java, TpegSimplePointMixin::class.java)
     .addMixIn(PointCoordinates::class.java, PointCoordinatesMixin::class.java)
     // Location enum mixins
@@ -212,7 +249,7 @@ private val objectMapper: ObjectMapper = ObjectMapper()
     // Emissions mixin
     .addMixIn(Emissions::class.java, EmissionsMixin::class.java)
 
-// Mixin for SituationRecord - removes unused fields, renames others
+// Mixin for SituationRecord - removes unused fields, renames others, flattens validity
 @Suppress("unused")
 private abstract class SituationRecordMixin {
     @JsonIgnore
@@ -247,6 +284,9 @@ private abstract class SituationRecordMixin {
 
     @JsonProperty("name")
     abstract fun getGenericSituationRecordName(): String?
+
+    @JsonUnwrapped
+    abstract fun getValidity(): Any?
 }
 
 // Mixin to flatten enum wrappers to just their value
@@ -289,7 +329,7 @@ private abstract class ImpactMixin {
     abstract fun getImpactExtension(): Any?
 }
 
-// Mixin for Cause - removes extension, renames fields
+// Mixin for Cause - removes extension, renames detailed cause type to subtypes
 @Suppress("unused")
 private abstract class CauseMixin {
     @JsonIgnore
@@ -301,7 +341,7 @@ private abstract class CauseMixin {
     @JsonProperty("type")
     abstract fun getCauseType(): Any?
 
-    @JsonProperty("details")
+    @JsonProperty("subtypes")
     abstract fun getDetailedCauseType(): Any?
 }
 
@@ -389,7 +429,7 @@ private abstract class SupplementaryPositionalDescriptionMixin {
     @JsonProperty("description")
     abstract fun getLocationDescription(): Any?
 
-    @JsonProperty("road")
+    @JsonProperty("roads")
     abstract fun getRoadInformation(): List<*>?
 
     @JsonProperty("geographic")
@@ -397,6 +437,9 @@ private abstract class SupplementaryPositionalDescriptionMixin {
 
     @JsonProperty("infrastructure")
     abstract fun getInfrastructureDescriptor(): Any?
+
+    @JsonProperty("lanes")
+    abstract fun getCarriageway(): List<*>?
 }
 
 // LinearLocation - remove extension
@@ -426,7 +469,7 @@ private abstract class PointLocationMixin {
     abstract fun getTpegPointLocation(): Any?
 }
 
-// TpegLinearLocation - remove extension, rename fields
+// TpegLinearLocation - remove extension, rename direction, remove type
 @Suppress("unused")
 private abstract class TpegLinearLocationMixin {
     @JsonIgnore
@@ -435,7 +478,7 @@ private abstract class TpegLinearLocationMixin {
     @JsonProperty("direction")
     abstract fun getTpegDirection(): Any?
 
-    @JsonProperty("type")
+    @JsonIgnore
     abstract fun getTpegLinearLocationType(): Any?
 }
 
@@ -449,7 +492,7 @@ private abstract class TpegPointMixin {
 // TpegNonJunctionPoint - unwrap the extension to flatten Spanish data
 @Suppress("unused")
 private abstract class TpegNonJunctionPointMixin {
-    @JsonProperty("coordinates")
+    @JsonProperty("coords")
     abstract fun getPointCoordinates(): Any?
 
     @JsonUnwrapped
@@ -466,21 +509,53 @@ private abstract class TpegNonJunctionPointExtensionMixin {
     abstract fun getExtendedTpegNonJunctionPoint(): Any?
 }
 
-// TpegPointLocation - remove extension
+// ExtendedTpegNonJunctionPoint - rename fields
+@Suppress("unused")
+private abstract class ExtendedTpegNonJunctionPointMixin {
+    @JsonProperty("state")
+    abstract fun getAutonomousCommunity(): String?
+
+    @JsonProperty("km")
+    abstract fun getKilometerPoint(): Float
+}
+
+// RoadInformation - remove extension, rename roadName to name
+@Suppress("unused")
+private abstract class RoadInformationMixin {
+    @JsonIgnore
+    abstract fun getRoadInformationExtension(): Any?
+
+    @JsonProperty("name")
+    abstract fun getRoadName(): String?
+
+    @JsonProperty("number")
+    abstract fun getRoadNumber(): String?
+
+    @JsonProperty("destination")
+    abstract fun getRoadDestination(): String?
+}
+
+// TpegPointLocation - remove extension, rename tpegDirection to direction
 @Suppress("unused")
 private abstract class TpegPointLocationMixin {
     @JsonIgnore
     abstract fun getTpegPointLocationExtension(): Any?
+
+    @JsonProperty("direction")
+    abstract fun getTpegDirection(): Any?
 }
 
-// TpegSimplePoint - remove extension, rename fields
+// TpegSimplePoint - remove extension, flatten point, remove type
 @Suppress("unused")
 private abstract class TpegSimplePointMixin {
     @JsonIgnore
     abstract fun getTpegSimplePointExtension(): Any?
 
-    @JsonProperty("type")
+    @JsonIgnore
     abstract fun getTpegSimplePointLocationType(): Any?
+
+    @JsonUnwrapped
+    abstract fun getPoint(): Any?
 }
 
 // PointCoordinates - remove extension and precision metadata, keep only lat/lon
@@ -709,13 +784,13 @@ private abstract class DelaysMixin {
 
 // ============ Source Mixin ============
 
-// Source - remove extension, rename sourceIdentification to id
+// Source - flatten to just the identification string
 @Suppress("unused")
 private abstract class SourceMixin {
     @JsonIgnore
     abstract fun getSourceExtension(): Any?
 
-    @JsonProperty("id")
+    @JsonValue
     abstract fun getSourceIdentification(): String?
 }
 
