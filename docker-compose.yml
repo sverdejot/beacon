@@ -1,4 +1,12 @@
 services:
+  osrm:
+    image: osrm/osrm-backend
+    command: osrm-routed --algorithm mld /data/spain-latest.osrm
+    volumes:
+      - ./var/routing:/data
+    ports:
+      - 5000:5000
+
   feed:
     build: feed
     environment:
@@ -21,10 +29,13 @@ services:
       - 8081:8081
     environment:
       MQTT_BROKER: "tcp://broker:1883"
-      HTTP_SERVER_PORT: 8081
+      HTTP_SERVER_PORT: "8081"
+      OSRM_URL: "http://osrm:5000"
     depends_on:
       health:
         condition: service_completed_successfully
+      osrm:
+        condition: service_started
 
   ui:
     image: terdia07/mqttui:latest

@@ -30,13 +30,23 @@
 
     stream.onmessage = function(event) {
       const loc = JSON.parse(event.data);
-      L.circleMarker([loc.lat, loc.lon], {
-        radius: 5,
-        fillColor: '#e74c3c',
-        color: '#c0392b',
-        weight: 1,
-        fillOpacity: 0.8
-      }).addTo(map);
+
+      if (loc.type === 'segment') {
+        const coords = loc.path.map(p => [p.lat, p.lon]);
+        L.polyline(coords, {
+          color: '#2980b9',
+          weight: 3,
+          opacity: 1
+        }).addTo(map);
+      } else if (loc.type === 'point') {
+        L.circleMarker([loc.point.lat, loc.point.lon], {
+          radius: 5,
+          fillColor: '#2980b9',
+          color: '#2980b9',
+          weight: 1,
+          fillOpacity: 1
+        }).addTo(map);
+      }
     };
 
     stream.onerror = function(err) {

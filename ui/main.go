@@ -16,51 +16,12 @@ import (
 const (
     localBroker = "tcp://localhost:1883"
     defaultHttpPort = "8081"
+    defaultOsrmUrl = "http://localhost:5000"
 
     brokerEnvKey = "MQTT_BROKER"
     httpPortEnvKey = "HTTP_SERVER_PORT"
+    osrmUrlEnvKey = "OSRM_URL"
 )
-
-type Record struct {
-    Location Location `json:"location"`
-}
-
-type Location struct {
-    Segment *Segment`json:"linear,omitempty"`
-    Single *Single `json:"point,omitempty"`
-}
-
-type Segment struct {
-    From Point `json:"from"`
-    To   Point `json:"to"`
-}
-
-type Single struct {
-    Point Point`json:"point"`
-}
-
-type Point struct {
-    Coordinates Coordinates `json:"coordinates"`
-}
-
-type Coordinates struct {
-    Lat float64 `json:"lat"`
-    Lon float64 `json:"lon"`
-}
-
-func (c Coordinates) Empty() bool {
-    return c.Lat == 0.0 && c.Lon == 0.0
-}
-
-func (r Record) GetCoordinates() Coordinates {
-    if r.Location.Segment != nil {
-        return r.Location.Segment.From.Coordinates
-    }
-    if r.Location.Single != nil {
-        return r.Location.Single.Point.Coordinates
-    }
-    return Coordinates{}
-}
 
 //go:embed static/index.html
 var html []byte
@@ -70,15 +31,13 @@ func index(w http.ResponseWriter, _ *http.Request) {
     w.Write(html)
 }
 
-func stream(ch chan Coordinates) func(w http.ResponseWriter, r *http.Request) {
+func stream(ch chan MapLocation) func(w http.ResponseWriter, r *http.Request) {
     return func(w http.ResponseWriter, r *http.Request) {
         w.Header().Set("Content-Type", "text/event-stream")
         w.Header().Set("Cache-Control", "no-cache")
         w.Header().Set("Connection", "keep-alive")
 
         rc := http.NewResponseController(w)
-        t := time.NewTicker(time.Second)
-        defer t.Stop()
         for {
             select {
             case <-r.Context().Done():
@@ -96,17 +55,23 @@ func stream(ch chan Coordinates) func(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-    broker := localBroker 
+    broker := localBroker
     if envBroker := os.Getenv(brokerEnvKey); envBroker != "" {
         broker = envBroker
     }
     port := defaultHttpPort
     if envHttpPort := os.Getenv(httpPortEnvKey); envHttpPort != "" {
-        port  = envHttpPort
+        port = envHttpPort
+    }
+    osrmUrl := defaultOsrmUrl
+    if envOsrmUrl := os.Getenv(osrmUrlEnvKey); envOsrmUrl != "" {
+        osrmUrl = envOsrmUrl
     }
 
     ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
     defer cancel()
+
+    routeService := NewRouteService(osrmUrl)
 
     opts := mqtt.NewClientOptions().
         AddBroker(broker)
@@ -117,7 +82,7 @@ func main() {
         os.Exit(1)
     }
 
-    ch := locationStream(client)
+    ch := locationStream(client, routeService)
 
     mux := http.NewServeMux()
     mux.HandleFunc("/", index)
@@ -144,8 +109,8 @@ func main() {
     }
 }
 
-func locationStream(client mqtt.Client) chan Coordinates {
-    ch := make(chan Coordinates, 100)
+func locationStream(client mqtt.Client, rs *RouteService) chan MapLocation {
+    ch := make(chan MapLocation, 100)
 
     tok := client.Subscribe("datex/#", 0, func(c mqtt.Client, m mqtt.Message) {
         var payload Record
@@ -154,12 +119,12 @@ func locationStream(client mqtt.Client) chan Coordinates {
             return
         }
 
-        coords := payload.GetCoordinates()
-        if coords.Empty() {
+        loc := payload.ToMapLocation(rs)
+        if loc == nil {
             return
         }
 
-        ch<-coords
+        ch<-*loc
     })
 
     tok.Wait()
