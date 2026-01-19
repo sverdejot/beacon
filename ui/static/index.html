@@ -30,22 +30,31 @@
 
     stream.onmessage = function(event) {
       const loc = JSON.parse(event.data);
+      const icon = loc.icon || '📍';
+
+      const recordIcon = L.divIcon({
+        html: `<div style="font-size: 24px; text-align: center;">${icon}</div>`,
+        className: 'emoji-marker',
+        iconSize: [30, 30],
+        iconAnchor: [15, 15]
+      });
 
       if (loc.type === 'segment') {
         const coords = loc.path.map(p => [p.lat, p.lon]);
+        
         L.polyline(coords, {
           color: '#2980b9',
           weight: 3,
           opacity: 1
         }).addTo(map);
+
+        const midIndex = Math.floor(coords.length / 2);
+        const midPoint = coords[midIndex];
+        
+        L.marker(midPoint, { icon: recordIcon }).addTo(map);
+
       } else if (loc.type === 'point') {
-        L.circleMarker([loc.point.lat, loc.point.lon], {
-          radius: 5,
-          fillColor: '#2980b9',
-          color: '#2980b9',
-          weight: 1,
-          fillOpacity: 1
-        }).addTo(map);
+        L.marker([loc.point.lat, loc.point.lon], { icon: recordIcon }).addTo(map);
       }
     };
 
