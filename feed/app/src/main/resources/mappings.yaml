@@ -1,0 +1,356 @@
+mappings:
+  SituationRecord:
+    ignore:
+      - generalPublicComment
+      - nonGeneralPublicComment
+      - situationRecordCreationReference
+      - situationRecordCreationTime
+      - situationRecordVersionTime
+      - safetyRelatedMessage
+      - situationRecordExtension
+      - genericSituationRecordExtension
+    rename:
+      locationReference: location
+      probabilityOfOccurrence: probability
+      genericSituationRecordName: name
+    unwrap:
+      - validity
+
+  Validity:
+    ignore:
+      - validityStatus
+      - validityExtension
+    unwrap:
+      - validityTimeSpecification
+
+  OverallPeriod:
+    rename:
+      overallStartTime: startTime
+      overallEndTime: endTime
+    ignore:
+      - overallPeriodExtension
+
+  Impact:
+    ignore:
+      - impactExtension
+
+  Cause:
+    ignore:
+      - causeExtension
+      - managedCause
+    rename:
+      causeType: type
+      detailedCauseType: subtypes
+
+  DetailedCauseType:
+    flattenEnumValues:
+      - abnormalTrafficType
+      - accidentType
+      - disturbanceActivityType
+      - environmentalObstructionType
+      - equipmentOrSystemFaultType
+      - infrastructureDamageType
+      - obstructionType
+      - poorEnvironmentType
+      - publicEventType
+      - roadMaintenanceType
+      - roadOrCarriagewayOrLaneManagementType
+      - vehicleObstructionType
+
+  LocationReference:
+    ignore:
+      - locationReferenceExtension
+
+  Location:
+    ignore:
+      - locationExtension
+    rename:
+      coordinatesForDisplay: coordinates
+
+  NetworkLocation:
+    ignore:
+      - networkLocationExtension
+    unwrap:
+      - supplementaryPositionalDescription
+
+  SupplementaryPositionalDescription:
+    ignore:
+      - supplementaryPositionalDescriptionExtension
+    rename:
+      lengthAffected: length
+      locationDescription: description
+      roadInformation: roads
+      geographicDescriptor: geographic
+      infrastructureDescriptor: infrastructure
+      carriageway: lanes
+
+  LinearLocation:
+    ignore:
+      - linearLocationExtension
+
+  SingleRoadLinearLocation:
+    ignore:
+      - singleRoadLinearLocationExtension
+    rename:
+      tpegLinearLocation: linear
+
+  PointLocation:
+    ignore:
+      - pointLocationExtension
+    rename:
+      tpegPointLocation: point
+
+  TpegLinearLocation:
+    ignore:
+      - tpegLinearLocationExtension
+      - tpegLinearLocationType
+    rename:
+      tpegDirection: direction
+
+  TpegPoint:
+    ignore:
+      - tpegPointExtension
+
+  TpegNonJunctionPoint:
+    rename:
+      pointCoordinates: coords
+    unwrap:
+      - tpegNonJunctionPointExtension
+
+  TpegNonJunctionPointExtensionType:
+    ignore:
+      - any
+    unwrap:
+      - extendedTpegNonJunctionPoint
+
+  ExtendedTpegNonJunctionPoint:
+    rename:
+      autonomousCommunity: state
+      kilometerPoint: km
+
+  RoadInformation:
+    ignore:
+      - roadInformationExtension
+    rename:
+      roadName: name
+      roadNumber: number
+      roadDestination: destination
+
+  TpegPointLocation:
+    ignore:
+      - tpegPointLocationExtension
+    rename:
+      tpegDirection: direction
+
+  TpegSimplePoint:
+    ignore:
+      - tpegSimplePointExtension
+      - tpegSimplePointLocationType
+    unwrap:
+      - point
+
+  PointCoordinates:
+    ignore:
+      - pointCoordinatesExtension
+      - heightCoordinate
+      - positionConfidenceEllipse
+      - horizontalPositionAccuracy
+    rename:
+      latitude: lat
+      longitude: lon
+
+  TrafficElement:
+    ignore:
+      - trafficElementExtension
+
+  Obstruction:
+    ignore:
+      - obstructionExtension
+    rename:
+      numberOfObstructions: count
+      mobilityOfObstruction: mobility
+
+  GeneralObstruction:
+    ignore:
+      - generalObstructionExtension
+    rename:
+      obstructionType: types
+
+  VehicleObstruction:
+    ignore:
+      - vehicleObstructionExtension
+    rename:
+      vehicleObstructionType: type
+
+  AnimalPresenceObstruction:
+    ignore:
+      - animalPresenceObstructionExtension
+    rename:
+      animalPresenceType: type
+
+  Conditions:
+    ignore:
+      - conditionsExtension
+
+  PoorEnvironmentConditions:
+    ignore:
+      - poorEnvironmentConditionsExtension
+    rename:
+      poorEnvironmentType: types
+
+  RoadSurfaceConditions:
+    ignore:
+      - roadSurfaceConditionsExtension
+
+  NonWeatherRelatedRoadConditions:
+    ignore:
+      - nonWeatherRelatedRoadConditionsExtension
+    rename:
+      nonWeatherRelatedRoadConditionType: types
+
+  AbnormalTraffic:
+    ignore:
+      - abnormalTrafficExtension
+    rename:
+      abnormalTrafficType: type
+
+  OperatorAction:
+    ignore:
+      - operatorActionExtension
+
+  Roadworks:
+    ignore:
+      - roadworksExtension
+
+  MaintenanceWorks:
+    ignore:
+      - maintenanceWorksExtension
+    rename:
+      roadMaintenanceType: types
+
+  NetworkManagement:
+    ignore:
+      - networkManagementExtension
+    rename:
+      complianceOption: compliance
+      forVehiclesWithCharacteristicsOf: vehicles
+
+  RoadOrCarriagewayOrLaneManagement:
+    ignore:
+      - roadOrCarriagewayOrLaneManagementExtension
+    rename:
+      roadOrCarriagewayOrLaneManagementType: type
+      minimumCarOccupancy: minOccupancy
+
+  SpeedManagement:
+    ignore:
+      - speedManagementExtension
+    rename:
+      speedManagementType: type
+      temporarySpeedLimit: speedLimit
+
+  GeneralInstructionOrMessageToRoadUsers:
+    ignore:
+      - generalInstructionOrMessageToRoadUsersExtension
+    rename:
+      generalInstructionToRoadUsersType: type
+      generalMessageToRoadUsers: message
+
+  Delays:
+    ignore:
+      - delaysExtension
+    rename:
+      delayTimeValue: delay
+
+  VehicleCharacteristics:
+    ignore:
+      - vehicleCharacteristicsExtension
+    rename:
+      loadType: load
+      vehicleEquipment: equipment
+      vehicleType: types
+      grossWeightCharacteristic: grossWeight
+      heightCharacteristic: height
+      lengthCharacteristic: length
+      widthCharacteristic: width
+      heaviestAxleWeightCharacteristic: axleWeight
+
+  GrossWeightCharacteristic:
+    ignore:
+      - grossWeightCharacteristicExtension
+    rename:
+      comparisonOperator: operator
+      grossVehicleWeight: weight
+      typeOfWeight: type
+
+  HeightCharacteristic:
+    ignore:
+      - heightCharacteristicExtension
+    rename:
+      comparisonOperator: operator
+      vehicleHeight: value
+
+  LengthCharacteristic:
+    ignore:
+      - lengthCharacteristicExtension
+    rename:
+      comparisonOperator: operator
+      vehicleLength: value
+
+  WidthCharacteristic:
+    ignore:
+      - widthCharacteristicExtension
+    rename:
+      comparisonOperator: operator
+      vehicleWidth: value
+
+  HeaviestAxleWeightCharacteristic:
+    ignore:
+      - heaviestAxleWeightCharacteristicExtension
+    rename:
+      comparisonOperator: operator
+      heaviestAxleWeight: weight
+
+  Emissions:
+    ignore:
+      - emissionsExtension
+    rename:
+      emissionClassificationOther: classification
+
+valueOnly:
+  Mobility: mobilityType
+  Source: sourceIdentification
+
+enums:
+  - ProbabilityOfOccurrenceEnum
+  - SeverityEnum
+  - CauseTypeEnum
+  - AccidentTypeEnum
+  - DisturbanceActivityTypeEnum
+  - EnvironmentalObstructionTypeEnum
+  - EquipmentOrSystemFaultTypeEnum
+  - InfrastructureDamageTypeEnum
+  - PublicEventTypeEnum
+  - DirectionEnum
+  - DirectionPurposeEnum
+  - GeographicCharacteristicEnum
+  - InfrastructureDescriptorEnum
+  - TpegLoc01LinearLocationSubtypeEnum
+  - TpegLoc01SimplePointLocationSubtypeEnum
+  - MobilityTypeEnum
+  - ObstructionTypeEnum
+  - VehicleObstructionTypeEnum
+  - AnimalPresenceTypeEnum
+  - PoorEnvironmentTypeEnum
+  - NonWeatherRelatedRoadConditionTypeEnum
+  - AbnormalTrafficTypeEnum
+  - RoadMaintenanceTypeEnum
+  - ComplianceOptionEnum
+  - RoadOrCarriagewayOrLaneManagementTypeEnum
+  - SpeedManagementTypeEnum
+  - GeneralInstructionToRoadUsersTypeEnum
+  - LoadTypeEnum
+  - VehicleEquipmentEnum
+  - VehicleTypeEnum
+  - ComparisonOperatorEnum
+  - WeightTypeEnum
