@@ -93,7 +93,6 @@ func main() {
 
     if tok := client.Connect(); tok.Wait() && tok.Error() != nil {
         slog.Error(fmt.Sprintf("error connecting to broker %s: %s\n", broker, tok.Error()))
-        fmt.Fprintf(os.Stderr, "error connecting to broker %s: %s\n", broker, tok.Error())
         os.Exit(1)
     }
 
@@ -120,7 +119,6 @@ func main() {
     }()
 
     if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-        fmt.Fprintf(os.Stderr, "error listening on port :%s : %s\n", port, err)
         slog.Error(fmt.Sprintf("error listening on port :%s : %s\n", broker, err))
         os.Exit(1)
     }
@@ -135,7 +133,6 @@ func locationStream(client mqtt.Client, rs *RouteService) chan MapLocation {
         var payload Record
         if err := json.Unmarshal(m.Payload(), &payload); err != nil {
             slog.Error(fmt.Sprintf("error unmarshalling payload from topic %s: %s\n", m.Topic(), err))
-            fmt.Fprintf(os.Stderr, "error unmarshalling payload from topic %s: %s\n", m.Topic(), err)
             return
         }
 
