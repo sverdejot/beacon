@@ -2,3 +2,5 @@ ui/vendor
 feed/**/build
 feed/.gradle
 var/
+CLAUDE.md
+ingester/ingester

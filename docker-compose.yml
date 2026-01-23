@@ -1,4 +1,30 @@
 services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - schema/clickhouse:/docker-entrypoint-initdb.d
+    environment:
+      CLICKHOUSE_DB: beacon
+      CLICKHOUSE_USER: beacon
+      CLICKHOUSE_PASSWORD: beacon
+
+  ingester:
+    build: ingester
+    depends_on:
+      health:
+        condition: service_completed_successfully
+      clickhouse:
+        condition: service_started
+    environment:
+      MQTT_BROKER: tcp://broker:1883
+      CLICKHOUSE_ADDR: clickhouse:9000
+      CLICKHOUSE_DATABASE: beacon
+      CLICKHOUSE_USER: beacon
+      CLICKHOUSE_PASSWORD: beacon
+
   osrm:
     image: osrm/osrm-backend
     command: osrm-routed --algorithm mld /data/spain-latest.osrm
