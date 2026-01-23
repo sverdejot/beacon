@@ -8,6 +8,9 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/sverdejot/beacon/internal/ingester"
+	"github.com/sverdejot/beacon/pkg/datex"
+
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
@@ -39,7 +42,7 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	ch, err := NewClickHouseClient(chAddr, chDB, chUser, chPass)
+	ch, err := ingester.NewClickHouseClient(chAddr, chDB, chUser, chPass)
 	if err != nil {
 		slog.Error(fmt.Sprintf("failed to connect to clickhouse: %s", err))
 		os.Exit(1)
@@ -61,14 +64,14 @@ func main() {
 	tok := client.Subscribe("datex/#", 1, func(c mqtt.Client, m mqtt.Message) {
 		slog.Info(fmt.Sprintf("received message [%d] from topic [%s]", m.MessageID(), m.Topic()))
 
-		var record Record
+		var record datex.Record
 		rawJSON := string(m.Payload())
 		if err := json.Unmarshal(m.Payload(), &record); err != nil {
 			slog.Error(fmt.Sprintf("failed to unmarshal message: %s", err))
 			return
 		}
 
-		incident := record.ToIncident(m.Topic(), rawJSON)
+		incident := ingester.RecordToIncident(&record, m.Topic(), rawJSON)
 		ch.Insert(incident)
 	})
 

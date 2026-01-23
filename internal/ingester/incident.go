@@ -1,0 +1,80 @@
+package ingester
+
+import (
+	"time"
+
+	"github.com/sverdejot/beacon/pkg/datex"
+)
+
+// flattened structure for clickhouse insertion
+type Incident struct {
+	ID            string
+	Version       int32
+	Timestamp     time.Time
+	EndTimestamp  *time.Time
+	Province      string
+	RecordType    string
+	Severity      string
+	Probability   string
+	Lat           float64
+	Lon           float64
+	Km            *float32
+	CauseType     string
+	CauseSubtypes []string
+	RoadName      string
+	RoadNumber    string
+	RawJSON       string
+}
+
+func RecordToIncident(r *datex.Record, topic string, rawJSON string) *Incident {
+	province := datex.ExtractProvince(topic)
+	recordType := datex.ExtractRecordType(topic)
+
+	inc := &Incident{
+		ID:          r.ID,
+		Version:     int32(r.Version),
+		Timestamp:   time.Now(),
+		Province:    province,
+		RecordType:  recordType,
+		Severity:    r.Severity,
+		Probability: r.Probability,
+		RawJSON:     rawJSON,
+	}
+
+	if r.Validity != nil {
+		if r.Validity.StartTime != nil {
+			inc.Timestamp = *r.Validity.StartTime
+		}
+		inc.EndTimestamp = r.Validity.EndTime
+	}
+
+	if r.Location.Linear != nil {
+		inc.Lat = r.Location.Linear.From.Coordinates.Lat
+		inc.Lon = r.Location.Linear.From.Coordinates.Lon
+		if r.Location.Linear.From.State != "" {
+			inc.Province = r.Location.Linear.From.State
+		}
+		if r.Location.Linear.From.Km != nil {
+			km := float32(*r.Location.Linear.From.Km)
+			inc.Km = &km
+		}
+	} else if r.Location.Point != nil {
+		inc.Lat = r.Location.Point.Coordinates.Lat
+		inc.Lon = r.Location.Point.Coordinates.Lon
+		if r.Location.Point.State != "" {
+			inc.Province = r.Location.Point.State
+		}
+	}
+
+	if r.Cause != nil {
+		inc.CauseType = r.Cause.Type
+		inc.CauseSubtypes = r.Cause.Subtypes
+	}
+
+	if len(r.Location.Roads) > 0 {
+		inc.RoadName = r.Location.Roads[0].Name
+		inc.RoadNumber = r.Location.Roads[0].Number
+	}
+
+	return inc
+}

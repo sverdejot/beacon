@@ -1,4 +1,4 @@
-package main
+package ingester
 
 import (
 	"context"
@@ -11,11 +11,16 @@ import (
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
 )
 
+const (
+    batchSize = 100
+    flushInterval = 5 * time.Second
+)
+
 type ClickHouseClient struct {
-	conn       driver.Conn
-	batch      []Incident
-	batchMu    sync.Mutex
-	batchSize  int
+	conn          driver.Conn
+	batch         []Incident
+	batchMu       sync.Mutex
+	batchSize     int
 	flushInterval time.Duration
 }
 
@@ -33,7 +38,7 @@ func NewClickHouseClient(addr, database, user, password string) (*ClickHouseClie
 		DialTimeout:     10 * time.Second,
 		ConnMaxLifetime: time.Hour,
 	})
-	if err != nil {
+        if err != nil {
 		return nil, fmt.Errorf("failed to connect to clickhouse: %w", err)
 	}
 
@@ -43,9 +48,9 @@ func NewClickHouseClient(addr, database, user, password string) (*ClickHouseClie
 
 	client := &ClickHouseClient{
 		conn:          conn,
-		batch:         make([]Incident, 0, 100),
-		batchSize:     100,
-		flushInterval: 5 * time.Second,
+		batch:         make([]Incident, 0, batchSize),
+		batchSize:     batchSize,
+		flushInterval: flushInterval,
 	}
 
 	go client.periodicFlush()

@@ -12,7 +12,9 @@ services:
       CLICKHOUSE_PASSWORD: beacon
 
   ingester:
-    build: ingester
+    build:
+      context: .
+      dockerfile: build/ingester/Dockerfile
     depends_on:
       health:
         condition: service_completed_successfully
@@ -50,7 +52,9 @@ services:
     restart: on-failure
 
   map:
-    build: ui
+    build:
+      context: .
+      dockerfile: build/ui/Dockerfile
     ports:
       - 8081:8081
     environment:

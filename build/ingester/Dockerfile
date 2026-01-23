@@ -3,7 +3,7 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
-RUN go build -o ingester
+RUN go build -o ingester ./cmd/ingester
 
 FROM alpine:3.23
 WORKDIR /app

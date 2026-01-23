@@ -1,4 +1,4 @@
-module github.com/sverdejot/beacon/ingester
+module github.com/sverdejot/beacon
 
 go 1.25.5
 
