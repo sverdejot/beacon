@@ -7,7 +7,7 @@ import (
 
 type Record struct {
 	ID          string    `json:"id"`
-	Version     int       `json:"version"`
+	Version     string    `json:"version"`
 	Name        string    `json:"name,omitempty"`
 	Probability string    `json:"probability,omitempty"`
 	Severity    string    `json:"severity,omitempty"`

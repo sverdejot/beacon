@@ -1,6 +1,7 @@
 package ingester
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/sverdejot/beacon/pkg/datex"
@@ -30,9 +31,11 @@ func RecordToIncident(r *datex.Record, topic string, rawJSON string) *Incident {
 	province := datex.ExtractProvince(topic)
 	recordType := datex.ExtractRecordType(topic)
 
+	version, _ := strconv.ParseInt(r.Version, 10, 32)
+
 	inc := &Incident{
 		ID:          r.ID,
-		Version:     int32(r.Version),
+		Version:     int32(version),
 		Timestamp:   time.Now(),
 		Province:    province,
 		RecordType:  recordType,
