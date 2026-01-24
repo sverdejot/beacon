@@ -149,7 +149,7 @@ func (r *Repository) GetSeverityDistribution(ctx context.Context) ([]Distributio
 		SELECT severity, toInt32(count()) AS count
 		FROM beacon.traffic_incidents FINAL
 		WHERE timestamp >= today() - INTERVAL 7 DAY
-		  AND severity != ''
+		  AND severity <> ''
 		GROUP BY severity
 		ORDER BY count DESC
 	`)
@@ -175,7 +175,7 @@ func (r *Repository) GetCauseTypeDistribution(ctx context.Context) ([]Distributi
 		SELECT cause_type, toInt32(count()) AS count
 		FROM beacon.traffic_incidents FINAL
 		WHERE timestamp >= today() - INTERVAL 7 DAY
-		  AND cause_type != ''
+		  AND cause_type <> ''
 		GROUP BY cause_type
 		ORDER BY count DESC
 	`)
@@ -201,7 +201,7 @@ func (r *Repository) GetProvinceDistribution(ctx context.Context) ([]Distributio
 		SELECT province, toInt32(count()) AS count
 		FROM beacon.traffic_incidents FINAL
 		WHERE timestamp >= today() - INTERVAL 7 DAY
-		  AND province != ''
+		  AND province <> ''
 		GROUP BY province
 		ORDER BY count DESC
 	`)
@@ -228,11 +228,11 @@ func (r *Repository) GetTopRoads(ctx context.Context, limit int) ([]TopRoad, err
 	}
 
 	rows, err := r.conn.Query(ctx, `
-		SELECT road_number, road_name, toInt32(count()) AS count
+		SELECT road_name, toInt32(count()) AS count
 		FROM beacon.traffic_incidents FINAL
 		WHERE timestamp >= today() - INTERVAL 7 DAY
-		  AND road_number != ''
-		GROUP BY road_number, road_name
+		  AND road_name <> ''
+		GROUP BY road_name
 		ORDER BY count DESC
 		LIMIT ?
 	`, limit)
@@ -244,7 +244,7 @@ func (r *Repository) GetTopRoads(ctx context.Context, limit int) ([]TopRoad, err
 	var data []TopRoad
 	for rows.Next() {
 		var road TopRoad
-		if err := rows.Scan(&road.RoadNumber, &road.RoadName, &road.Count); err != nil {
+		if err := rows.Scan(&road.Road, &road.Count); err != nil {
 			return nil, fmt.Errorf("failed to scan road row: %w", err)
 		}
 		data = append(data, road)
@@ -334,7 +334,6 @@ func (r *Repository) GetActiveIncidents(ctx context.Context) ([]ActiveIncident, 
 			id,
 			timestamp,
 			province,
-			road_number,
 			road_name,
 			severity,
 			cause_type,
@@ -359,7 +358,6 @@ func (r *Repository) GetActiveIncidents(ctx context.Context) ([]ActiveIncident, 
 			&inc.Timestamp,
 			&inc.Province,
 			&inc.RoadNumber,
-			&inc.RoadName,
 			&inc.Severity,
 			&inc.CauseType,
 			&inc.DurationMins,
@@ -368,6 +366,8 @@ func (r *Repository) GetActiveIncidents(ctx context.Context) ([]ActiveIncident, 
 		); err != nil {
 			return nil, fmt.Errorf("failed to scan active incident row: %w", err)
 		}
+		// road_name contains the road identifier
+		inc.RoadName = ""
 		data = append(data, inc)
 	}
 

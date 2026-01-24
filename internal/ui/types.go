@@ -1,27 +1,8 @@
 package ui
 
 import (
-	"strings"
 	"time"
-
-	"github.com/sverdejot/beacon/pkg/datex"
 )
-
-var icons = map[string]string{
-	"vehicle_obstruction":                          "🚗",
-	"general_obstruction":                          "⚠️",
-	"animal_presence_obstruction":                  "🦌",
-	"abnormal_traffic":                             "🚦",
-	"poor_environment_conditions":                  "☁️",
-	"road_surface_conditions":                      "❄️",
-	"non_weather_related_road_conditions":          "🕳️",
-	"roadworks":                                    "🚧",
-	"maintenance_works":                            "🚧",
-	"road_or_carriageway_or_lane_management":       "🚫",
-	"speed_management":                             "🐢",
-	"general_instruction_or_message_to_road_users": "ℹ️",
-	"generic_situation_record":                     "📍",
-}
 
 type Summary struct {
 	ActiveIncidents int32   `json:"active_incidents"`
@@ -47,9 +28,8 @@ type DistributionItem struct {
 }
 
 type TopRoad struct {
-	RoadNumber string `json:"road_number"`
-	RoadName   string `json:"road_name"`
-	Count      int32  `json:"count"`
+	Road  string `json:"road"`
+	Count int32  `json:"count"`
 }
 
 type TopSubtype struct {
@@ -105,56 +85,17 @@ type ActiveIncidentsResponse struct {
 	Data []ActiveIncident `json:"data"`
 }
 
-func GetEmoji(recordType string) string {
-	parts := strings.Split(recordType, "/")
-	typeName := parts[len(parts)-1]
-
-	if icon, ok := icons[typeName]; ok {
-		return icon
-	}
-
-	if len(parts) >= 2 && parts[len(parts)-2] == "causes" {
-		if icon, ok := icons[typeName]; ok {
-			return icon
-		}
-	}
-
-	return "📍"
+type MapIncident struct {
+	ID         string  `json:"id"`
+	Icon       string  `json:"icon"`
+	Lat        float64 `json:"lat"`
+	Lon        float64 `json:"lon"`
+	RecordType string  `json:"record_type"`
+	Severity   string  `json:"severity,omitempty"`
+	RoadName   string  `json:"road_name,omitempty"`
+	RoadNumber string  `json:"road_number,omitempty"`
 }
 
-type MapLocation struct {
-	Type  string              `json:"type"`
-	Icon  string              `json:"icon"`
-	Point *datex.Coordinates  `json:"point,omitempty"`
-	Path  []datex.Coordinates `json:"path,omitempty"`
-}
-
-func RecordToMapLocation(r *datex.Record, rs *RouteService, recordType string) *MapLocation {
-	icon := GetEmoji(recordType)
-
-	if r.Location.Linear != nil {
-		from := r.Location.Linear.From.Coordinates
-		to := r.Location.Linear.To.Coordinates
-		if from.Empty() || to.Empty() {
-			return nil
-		}
-		path := rs.GetRoute(from, to)
-		return &MapLocation{
-			Type: "segment",
-			Icon: icon,
-			Path: path,
-		}
-	}
-	if r.Location.Point != nil {
-		point := r.Location.Point.Coordinates
-		if point.Empty() {
-			return nil
-		}
-		return &MapLocation{
-			Type:  "point",
-			Icon:  icon,
-			Point: &point,
-		}
-	}
-	return nil
+type MapIncidentsResponse struct {
+	Data []MapIncident `json:"data"`
 }

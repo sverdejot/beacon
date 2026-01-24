@@ -10,7 +10,10 @@ import (
 
 	"github.com/caarlos0/env/v11"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/sverdejot/beacon/internal/cache"
 	"github.com/sverdejot/beacon/internal/ingester"
+	"github.com/sverdejot/beacon/internal/shared"
+	"github.com/sverdejot/beacon/internal/routing"
 	"github.com/sverdejot/beacon/pkg/datex"
 )
 
@@ -23,6 +26,8 @@ func main() {
 
 	slog.Info(fmt.Sprintf("connecting to MQTT broker: %s", cfg.MQTTBroker))
 	slog.Info(fmt.Sprintf("connecting to ClickHouse: %s/%s", cfg.ClickHouseAddr, cfg.ClickHouseDatabase))
+	slog.Info(fmt.Sprintf("using OSRM at: %s", cfg.OSRMURL))
+	slog.Info(fmt.Sprintf("using Redis at: %s", cfg.RedisAddr))
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
@@ -34,6 +39,16 @@ func main() {
 	}
 	defer ch.Close() //nolint:errcheck
 	slog.Info("connected to ClickHouse")
+
+	routeService := routing.NewRouteService(cfg.OSRMURL)
+	slog.Info("initialized OSRM route service")
+
+	mapCache, err := cache.NewCache(cfg.RedisAddr, cfg.RedisPassword, cfg.RedisDB)
+	if err != nil {
+		slog.Error(fmt.Sprintf("failed to connect to Redis: %s", err))
+		os.Exit(1)
+	}
+	slog.Info("connected to Redis")
 
 	opts := mqtt.NewClientOptions().
 		AddBroker(cfg.MQTTBroker).
@@ -56,7 +71,19 @@ func main() {
 			return
 		}
 
-		incident := ingester.RecordToIncident(&record, m.Topic(), rawJSON)
+		recordType := datex.ExtractRecordType(m.Topic())
+
+		// Compute MapLocation with OSRM route
+		loc := shared.RecordToMapLocation(&record, routeService, recordType)
+		if loc != nil {
+			// Store in Valkey cache for map UI
+			if err := mapCache.StoreMapLocation(context.Background(), loc, record.Validity); err != nil {
+				slog.Error(fmt.Sprintf("failed to store location in cache: %s", err))
+			}
+		}
+
+		// Create incident with polyline for ClickHouse
+		incident := ingester.RecordToIncidentWithRoute(&record, m.Topic(), rawJSON, loc)
 		ch.Insert(incident)
 	})
 
@@ -70,6 +97,7 @@ func main() {
 	slog.Info("shutting down...")
 
 	client.Disconnect(250)
+	mapCache.Close()
 	ch.Close() //nolint:errcheck
 
 	slog.Info("shutdown complete")

@@ -1,4 +1,7 @@
 services:
+  valkey:
+    image: valkey/valkey:8-alpine
+
   clickhouse:
     image: clickhouse/clickhouse-server:latest
     ports:
@@ -30,12 +33,18 @@ services:
         condition: service_completed_successfully
       clickhouse:
         condition: service_started
+      valkey:
+        condition: service_started
+      osrm:
+        condition: service_started
     environment:
       MQTT_BROKER: tcp://broker:1883
       CLICKHOUSE_ADDR: clickhouse:9000
       CLICKHOUSE_DATABASE: beacon
       CLICKHOUSE_USER: beacon
       CLICKHOUSE_PASSWORD: beacon
+      OSRM_URL: "http://osrm:5000"
+      REDIS_ADDR: valkey:6379
 
   osrm:
     image: osrm/osrm-backend
@@ -72,17 +81,17 @@ services:
     environment:
       MQTT_BROKER: "tcp://broker:1883"
       HTTP_SERVER_PORT: "8081"
-      OSRM_URL: "http://osrm:5000"
       CLICKHOUSE_ADDR: clickhouse:9000
       CLICKHOUSE_DATABASE: beacon
       CLICKHOUSE_USER: beacon
       CLICKHOUSE_PASSWORD: beacon
+      REDIS_ADDR: valkey:6379
     depends_on:
       health:
         condition: service_completed_successfully
-      osrm:
-        condition: service_started
       clickhouse:
+        condition: service_started
+      valkey:
         condition: service_started
 
   mqttui:

@@ -84,7 +84,7 @@ func (c *ClickHouseClient) Flush() {
 		INSERT INTO traffic_incidents (
 			id, version, timestamp, end_timestamp, province, record_type,
 			severity, probability, lat, lon, km, cause_type, cause_subtypes,
-			road_name, road_number, raw_json
+			road_name, road_number, raw_json, polyline, location_type
 		)
 	`)
 	if err != nil {
@@ -125,6 +125,8 @@ func (c *ClickHouseClient) Flush() {
 			inc.RoadName,
 			inc.RoadNumber,
 			inc.RawJSON,
+			inc.Polyline,
+			inc.LocationType,
 		)
 		if err != nil {
 			slog.Error(fmt.Sprintf("failed to append to batch: %s", err))

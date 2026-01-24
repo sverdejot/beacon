@@ -1,9 +1,11 @@
 package ingester
 
 import (
+	"encoding/json"
 	"strconv"
 	"time"
 
+	"github.com/sverdejot/beacon/internal/shared"
 	"github.com/sverdejot/beacon/pkg/datex"
 )
 
@@ -25,6 +27,8 @@ type Incident struct {
 	RoadName      string
 	RoadNumber    string
 	RawJSON       string
+	Polyline      string
+	LocationType  string
 }
 
 func RecordToIncident(r *datex.Record, topic string, rawJSON string) *Incident {
@@ -77,6 +81,23 @@ func RecordToIncident(r *datex.Record, topic string, rawJSON string) *Incident {
 	if len(r.Location.Roads) > 0 {
 		inc.RoadName = r.Location.Roads[0].Name
 		inc.RoadNumber = r.Location.Roads[0].Number
+	}
+
+	return inc
+}
+
+// RecordToIncidentWithRoute creates an Incident with route data from a pre-computed MapLocation
+func RecordToIncidentWithRoute(r *datex.Record, topic string, rawJSON string, loc *shared.MapLocation) *Incident {
+	inc := RecordToIncident(r, topic, rawJSON)
+
+	if loc != nil {
+		inc.LocationType = loc.Type
+		if len(loc.Path) > 0 {
+			polylineJSON, err := json.Marshal(loc.Path)
+			if err == nil {
+				inc.Polyline = string(polylineJSON)
+			}
+		}
 	}
 
 	return inc

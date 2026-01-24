@@ -12,11 +12,13 @@ import (
 
 	"github.com/caarlos0/env/v11"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/sverdejot/beacon/internal/cache"
+	"github.com/sverdejot/beacon/internal/shared"
 	"github.com/sverdejot/beacon/internal/ui"
 	"github.com/sverdejot/beacon/pkg/datex"
 )
 
-func stream(ch chan ui.MapLocation) func(w http.ResponseWriter, r *http.Request) {
+func stream(ch chan shared.MapLocation) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		slog.InfoContext(ctx, "client connected")
@@ -69,8 +71,8 @@ func main() {
 
 	slog.Info(fmt.Sprintf("using [%s] as broker", cfg.MQTTBroker))
 	slog.Info(fmt.Sprintf("using [%s] as http port", cfg.HTTPPort))
-	slog.Info(fmt.Sprintf("using [%s] as OSRM host", cfg.OSRMURL))
 	slog.Info(fmt.Sprintf("using [%s] as ClickHouse address", cfg.ClickHouseAddr))
+	slog.Info(fmt.Sprintf("using [%s] as Redis address", cfg.RedisAddr))
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
@@ -82,7 +84,12 @@ func main() {
 	}
 	dashboardHandler := ui.NewHandler(dashboardRepo)
 
-	routeService := ui.NewRouteService(cfg.OSRMURL)
+	mapCache, err := cache.NewCache(cfg.RedisAddr, cfg.RedisPassword, cfg.RedisDB)
+	if err != nil {
+		slog.Error(fmt.Sprintf("failed to connect to Redis: %s", err))
+		os.Exit(1)
+	}
+	slog.Info("connected to Redis")
 
 	opts := mqtt.NewClientOptions().
 		AddBroker(cfg.MQTTBroker)
@@ -93,11 +100,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	ch := locationStream(client, routeService)
+	ch := locationStream(client, mapCache)
 
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /sse", stream(ch))
+	mux.HandleFunc("GET /api/map/incidents", mapIncidents(mapCache))
 
 	dashboardHandler.RegisterRoutes(mux)
 
@@ -116,6 +124,7 @@ func main() {
 		srv.Shutdown(shutdownCtx) //nolint:errcheck
 		client.Disconnect(250)
 		dashboardRepo.Close() //nolint:errcheck
+		mapCache.Close()
 	}()
 
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -124,8 +133,23 @@ func main() {
 	}
 }
 
-func locationStream(client mqtt.Client, rs *ui.RouteService) chan ui.MapLocation {
-	ch := make(chan ui.MapLocation, 100)
+func mapIncidents(mapCache *cache.Cache) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		locations, err := mapCache.GetAllMapLocations(r.Context())
+		if err != nil {
+			slog.Error(fmt.Sprintf("failed to get map incidents: %s", err))
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": "failed to get incidents"}) //nolint:errcheck
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"data": locations}) //nolint:errcheck
+	}
+}
+
+func locationStream(client mqtt.Client, mapCache *cache.Cache) chan shared.MapLocation {
+	ch := make(chan shared.MapLocation, 100)
 
 	tok := client.Subscribe("datex/#", 0, func(c mqtt.Client, m mqtt.Message) {
 		slog.Info(fmt.Sprintf("processing message [%d] from topic [%s]", m.MessageID(), m.Topic()))
@@ -136,11 +160,17 @@ func locationStream(client mqtt.Client, rs *ui.RouteService) chan ui.MapLocation
 			return
 		}
 
-		recordType := datex.ExtractRecordType(m.Topic())
+		// Fetch pre-computed MapLocation from Valkey (stored by ingester)
+		ctx := context.Background()
+		loc, err := mapCache.GetMapLocation(ctx, record.ID)
+		if err != nil {
+			// Race condition: ingester hasn't stored yet, retry after small delay
+			time.Sleep(100 * time.Millisecond)
+			loc, err = mapCache.GetMapLocation(ctx, record.ID)
+		}
 
-		loc := ui.RecordToMapLocation(&record, rs, recordType)
-		if loc == nil {
-			slog.Error(fmt.Sprintf("unable to convert record to location: %v", record))
+		if err != nil {
+			slog.Error(fmt.Sprintf("failed to get location from cache: %s", err))
 			return
 		}
 
