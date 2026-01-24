@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	_ "embed"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -11,42 +10,12 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/caarlos0/env/v11"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/sverdejot/beacon/internal/dashboard"
 	"github.com/sverdejot/beacon/internal/ui"
 	"github.com/sverdejot/beacon/pkg/datex"
-
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
-
-const (
-	localBroker     = "tcp://localhost:1883"
-	defaultHttpPort = "8081"
-	defaultOsrmUrl  = "http://localhost:5000"
-
-	// ClickHouse defaults
-	defaultClickHouseAddr     = "localhost:9000"
-	defaultClickHouseDatabase = "beacon"
-	defaultClickHouseUser     = "beacon"
-	defaultClickHousePassword = "beacon"
-
-	brokerEnvKey   = "MQTT_BROKER"
-	httpPortEnvKey = "HTTP_SERVER_PORT"
-	osrmUrlEnvKey  = "OSRM_URL"
-
-	// ClickHouse env keys
-	clickHouseAddrEnvKey     = "CLICKHOUSE_ADDR"
-	clickHouseDatabaseEnvKey = "CLICKHOUSE_DATABASE"
-	clickHouseUserEnvKey     = "CLICKHOUSE_USER"
-	clickHousePasswordEnvKey = "CLICKHOUSE_PASSWORD"
-)
-
-//go:embed static/index.html
-var html []byte
-
-func index(w http.ResponseWriter, _ *http.Request) {
-	w.Header().Add("Content-Type", "text/html")
-	w.Write(html)
-}
 
 func stream(ch chan ui.MapLocation) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -79,13 +48,6 @@ func stream(ch chan ui.MapLocation) func(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func getEnv(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return fallback
-}
-
 func cors(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -100,41 +62,35 @@ func cors(next http.Handler) http.Handler {
 }
 
 func main() {
-	broker := getEnv(brokerEnvKey, localBroker)
-	slog.Info(fmt.Sprintf("using [%s] as broker", broker))
+	cfg, err := env.ParseAs[config]()
+	if err != nil {
+		slog.Error(fmt.Sprintf("failed to parse config: %s", err))
+		os.Exit(1)
+	}
 
-	port := getEnv(httpPortEnvKey, defaultHttpPort)
-	slog.Info(fmt.Sprintf("using [%s] as http port", port))
-
-	osrmUrl := getEnv(osrmUrlEnvKey, defaultOsrmUrl)
-	slog.Info(fmt.Sprintf("using [%s] as OSRM host", osrmUrl))
-
-	// ClickHouse configuration
-	chAddr := getEnv(clickHouseAddrEnvKey, defaultClickHouseAddr)
-	chDatabase := getEnv(clickHouseDatabaseEnvKey, defaultClickHouseDatabase)
-	chUser := getEnv(clickHouseUserEnvKey, defaultClickHouseUser)
-	chPassword := getEnv(clickHousePasswordEnvKey, defaultClickHousePassword)
-	slog.Info(fmt.Sprintf("using [%s] as ClickHouse address", chAddr))
+	slog.Info(fmt.Sprintf("using [%s] as broker", cfg.MQTTBroker))
+	slog.Info(fmt.Sprintf("using [%s] as http port", cfg.HTTPPort))
+	slog.Info(fmt.Sprintf("using [%s] as OSRM host", cfg.OSRMURL))
+	slog.Info(fmt.Sprintf("using [%s] as ClickHouse address", cfg.ClickHouseAddr))
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	// Initialize ClickHouse repository for dashboard
-	dashboardRepo, err := dashboard.NewRepository(chAddr, chDatabase, chUser, chPassword)
+	dashboardRepo, err := dashboard.NewRepository(cfg.ClickHouseAddr, cfg.ClickHouseDatabase, cfg.ClickHouseUser, cfg.ClickHousePassword)
 	if err != nil {
 		slog.Error(fmt.Sprintf("failed to connect to ClickHouse: %s", err))
 		os.Exit(1)
 	}
 	dashboardHandler := dashboard.NewHandler(dashboardRepo)
 
-	routeService := ui.NewRouteService(osrmUrl)
+	routeService := ui.NewRouteService(cfg.OSRMURL)
 
 	opts := mqtt.NewClientOptions().
-		AddBroker(broker)
+		AddBroker(cfg.MQTTBroker)
 	client := mqtt.NewClient(opts)
 
 	if tok := client.Connect(); tok.Wait() && tok.Error() != nil {
-		slog.Error(fmt.Sprintf("error connecting to broker %s: %s\n", broker, tok.Error()))
+		slog.Error(fmt.Sprintf("error connecting to broker %s: %s\n", cfg.MQTTBroker, tok.Error()))
 		os.Exit(1)
 	}
 
@@ -142,15 +98,12 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	// Map streaming routes
-	mux.HandleFunc("GET /", index)
 	mux.HandleFunc("GET /sse", stream(ch))
 
-	// Dashboard API routes (with CORS for dev server)
 	dashboardHandler.RegisterRoutes(mux)
 
 	srv := &http.Server{
-		Addr:    ":" + port,
+		Addr:    ":" + cfg.HTTPPort,
 		Handler: cors(mux),
 	}
 
@@ -167,7 +120,7 @@ func main() {
 	}()
 
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		slog.Error(fmt.Sprintf("error listening on port :%s : %s\n", port, err))
+		slog.Error(fmt.Sprintf("error listening on port :%s : %s\n", cfg.HTTPPort, err))
 		os.Exit(1)
 	}
 }

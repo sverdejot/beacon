@@ -8,41 +8,26 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/caarlos0/env/v11"
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/sverdejot/beacon/internal/ingester"
 	"github.com/sverdejot/beacon/pkg/datex"
-
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
-
-const (
-	defaultBroker         = "tcp://localhost:1883"
-	defaultClickHouseAddr = "localhost:9000"
-	defaultClickHouseDB   = "beacon"
-	defaultClickHouseUser = "default"
-	defaultClickHousePass = ""
-)
-
-func getEnv(key, fallback string) string {
-	if v := os.Getenv(key); v != "" {
-		return v
-	}
-	return fallback
-}
 
 func main() {
-	broker := getEnv("MQTT_BROKER", defaultBroker)
-	chAddr := getEnv("CLICKHOUSE_ADDR", defaultClickHouseAddr)
-	chDB := getEnv("CLICKHOUSE_DATABASE", defaultClickHouseDB)
-	chUser := getEnv("CLICKHOUSE_USER", defaultClickHouseUser)
-	chPass := getEnv("CLICKHOUSE_PASSWORD", defaultClickHousePass)
+	cfg, err := env.ParseAs[config]()
+	if err != nil {
+		slog.Error(fmt.Sprintf("failed to parse config: %s", err))
+		os.Exit(1)
+	}
 
-	slog.Info(fmt.Sprintf("connecting to MQTT broker: %s", broker))
-	slog.Info(fmt.Sprintf("connecting to ClickHouse: %s/%s", chAddr, chDB))
+	slog.Info(fmt.Sprintf("connecting to MQTT broker: %s", cfg.MQTTBroker))
+	slog.Info(fmt.Sprintf("connecting to ClickHouse: %s/%s", cfg.ClickHouseAddr, cfg.ClickHouseDatabase))
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	ch, err := ingester.NewClickHouseClient(chAddr, chDB, chUser, chPass)
+	ch, err := ingester.NewClickHouseClient(cfg.ClickHouseAddr, cfg.ClickHouseDatabase, cfg.ClickHouseUser, cfg.ClickHousePassword)
 	if err != nil {
 		slog.Error(fmt.Sprintf("failed to connect to clickhouse: %s", err))
 		os.Exit(1)
@@ -51,7 +36,7 @@ func main() {
 	slog.Info("connected to ClickHouse")
 
 	opts := mqtt.NewClientOptions().
-		AddBroker(broker).
+		AddBroker(cfg.MQTTBroker).
 		SetClientID("beacon-ingester")
 	client := mqtt.NewClient(opts)
 
