@@ -1,8 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Dashboard from '../components/Dashboard';
+import { OverviewPage } from '../components/pages/OverviewPage';
 ---
 
 <Layout title="Beacon - Traffic Analytics Dashboard">
-  <Dashboard client:load />
+  <OverviewPage client:load currentPath="/" />
 </Layout>

@@ -9,6 +9,7 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import type { DistributionItem } from '../lib/types';
+import { useDashboard } from '../context/DashboardContext';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -17,8 +18,20 @@ interface Props {
 }
 
 export function ProvinceChart({ data }: Props) {
-  // top 15 provinces
-  const topData = data.slice(0, 15);
+  // Try to get filter context
+  let addFilter: ((filter: { type: 'province' | 'severity' | 'cause' | 'road'; value: string; label: string }) => void) | undefined;
+  let hasFilter: ((type: 'province' | 'severity' | 'cause' | 'road', value: string) => boolean) | undefined;
+  
+  try {
+    const context = useDashboard();
+    addFilter = context.addFilter;
+    hasFilter = context.hasFilter;
+  } catch {
+    // Context not available
+  }
+
+  // Take top 10 provinces for better readability
+  const topData = data.slice(0, 10);
 
   const chartData = {
     labels: topData.map((d) => d.label),
@@ -26,15 +39,32 @@ export function ProvinceChart({ data }: Props) {
       {
         label: 'Incidents',
         data: topData.map((d) => d.count),
-        backgroundColor: 'rgba(139, 92, 246, 0.8)',
+        backgroundColor: topData.map((d) =>
+          hasFilter && hasFilter('province', d.label)
+            ? 'rgba(59, 130, 246, 0.9)'
+            : 'rgba(139, 92, 246, 0.8)'
+        ),
+        hoverBackgroundColor: 'rgba(59, 130, 246, 1)',
         borderRadius: 4,
       },
     ],
   };
 
   const options = {
+    indexAxis: 'y' as const,
     responsive: true,
     maintainAspectRatio: false,
+    onClick: (_event: unknown, elements: Array<{ index: number }>) => {
+      if (elements.length > 0 && addFilter) {
+        const index = elements[0].index;
+        const item = topData[index];
+        addFilter({
+          type: 'province',
+          value: item.label,
+          label: item.label,
+        });
+      }
+    },
     plugins: {
       legend: {
         display: false,
@@ -45,19 +75,13 @@ export function ProvinceChart({ data }: Props) {
         bodyColor: '#f1f5f9',
         borderColor: '#334155',
         borderWidth: 1,
+        callbacks: {
+          afterBody: () => addFilter ? ['', 'Click to filter'] : [],
+        },
       },
     },
     scales: {
       x: {
-        grid: {
-          display: false,
-        },
-        ticks: {
-          color: '#94a3b8',
-          maxRotation: 45,
-        },
-      },
-      y: {
         beginAtZero: true,
         grid: {
           color: '#334155',
@@ -67,12 +91,29 @@ export function ProvinceChart({ data }: Props) {
           stepSize: 1,
         },
       },
+      y: {
+        grid: {
+          display: false,
+        },
+        ticks: {
+          color: '#94a3b8',
+        },
+      },
+    },
+    onHover: (event: unknown, elements: unknown[]) => {
+      const chartEvent = event as { native?: { target?: HTMLElement } };
+      const target = chartEvent.native?.target;
+      if (target?.style) {
+        target.style.cursor = elements.length > 0 && addFilter ? 'pointer' : 'default';
+      }
     },
   };
 
   return (
     <div className="card chart-card">
-      <div className="card-title">By Province (Last 7 Days)</div>
+      <div className="card-header">
+        <span className="card-title">By Province (Top 10, Last 7 Days)</span>
+      </div>
       <div className="chart-container">
         <Bar data={chartData} options={options} />
       </div>

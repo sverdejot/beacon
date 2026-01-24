@@ -1,0 +1,8 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { MapPage } from '../components/pages/MapPage';
+---
+
+<Layout title="Live Map - Beacon">
+  <MapPage client:load currentPath="/map" />
+</Layout>

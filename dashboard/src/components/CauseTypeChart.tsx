@@ -9,6 +9,7 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import type { DistributionItem } from '../lib/types';
+import { useDashboard } from '../context/DashboardContext';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
@@ -17,13 +18,30 @@ interface Props {
 }
 
 export function CauseTypeChart({ data }: Props) {
+  // Try to get filter context
+  let addFilter: ((filter: { type: 'province' | 'severity' | 'cause' | 'road'; value: string; label: string }) => void) | undefined;
+  let hasFilter: ((type: 'province' | 'severity' | 'cause' | 'road', value: string) => boolean) | undefined;
+  
+  try {
+    const context = useDashboard();
+    addFilter = context.addFilter;
+    hasFilter = context.hasFilter;
+  } catch {
+    // Context not available
+  }
+
   const chartData = {
     labels: data.map((d) => d.label.replace(/_/g, ' ')),
     datasets: [
       {
         label: 'Incidents',
         data: data.map((d) => d.count),
-        backgroundColor: 'rgba(6, 182, 212, 0.8)',
+        backgroundColor: data.map((d) => 
+          hasFilter && hasFilter('cause', d.label) 
+            ? 'rgba(59, 130, 246, 0.9)' 
+            : 'rgba(6, 182, 212, 0.8)'
+        ),
+        hoverBackgroundColor: 'rgba(59, 130, 246, 1)',
         borderRadius: 4,
       },
     ],
@@ -33,6 +51,17 @@ export function CauseTypeChart({ data }: Props) {
     indexAxis: 'y' as const,
     responsive: true,
     maintainAspectRatio: false,
+    onClick: (_event: unknown, elements: Array<{ index: number }>) => {
+      if (elements.length > 0 && addFilter) {
+        const index = elements[0].index;
+        const item = data[index];
+        addFilter({
+          type: 'cause',
+          value: item.label,
+          label: item.label.replace(/_/g, ' '),
+        });
+      }
+    },
     plugins: {
       legend: {
         display: false,
@@ -43,6 +72,9 @@ export function CauseTypeChart({ data }: Props) {
         bodyColor: '#f1f5f9',
         borderColor: '#334155',
         borderWidth: 1,
+        callbacks: {
+          afterBody: () => addFilter ? ['', 'Click to filter'] : [],
+        },
       },
     },
     scales: {
@@ -65,11 +97,20 @@ export function CauseTypeChart({ data }: Props) {
         },
       },
     },
+    onHover: (event: unknown, elements: unknown[]) => {
+      const chartEvent = event as { native?: { target?: HTMLElement } };
+      const target = chartEvent.native?.target;
+      if (target?.style) {
+        target.style.cursor = elements.length > 0 && addFilter ? 'pointer' : 'default';
+      }
+    },
   };
 
   return (
     <div className="card chart-card">
-      <div className="card-title">By Cause Type (Last 7 Days)</div>
+      <div className="card-header">
+        <span className="card-title">By Cause Type (Last 7 Days)</span>
+      </div>
       <div className="chart-container">
         <Bar data={chartData} options={options} />
       </div>

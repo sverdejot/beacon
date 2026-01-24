@@ -1,0 +1,8 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { RoadsPage } from '../components/pages/RoadsPage';
+---
+
+<Layout title="Top Roads - Beacon">
+  <RoadsPage client:load currentPath="/roads" />
+</Layout>

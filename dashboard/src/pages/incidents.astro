@@ -1,0 +1,8 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { IncidentsPage } from '../components/pages/IncidentsPage';
+---
+
+<Layout title="Active Incidents - Beacon">
+  <IncidentsPage client:load currentPath="/incidents" />
+</Layout>

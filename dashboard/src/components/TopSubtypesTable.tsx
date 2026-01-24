@@ -4,33 +4,102 @@ interface Props {
   data: TopSubtype[];
 }
 
+// Map subtypes to emoji icons
+const subtypeIcons: Record<string, string> = {
+  accident: '💥',
+  breakdown: '🚗',
+  roadworks: '🚧',
+  congestion: '🚦',
+  weather: '🌧️',
+  fog: '🌫️',
+  rain: '🌧️',
+  snow: '❄️',
+  ice: '🧊',
+  wind: '💨',
+  fire: '🔥',
+  animal: '🦌',
+  object: '📦',
+  closure: '🚫',
+  lane_restriction: '↔️',
+  default: '⚠️',
+};
+
+function getSubtypeIcon(subtype: string): string {
+  const lowerSubtype = subtype.toLowerCase();
+  for (const [key, icon] of Object.entries(subtypeIcons)) {
+    if (lowerSubtype.includes(key)) {
+      return icon;
+    }
+  }
+  return subtypeIcons.default;
+}
+
 export function TopSubtypesTable({ data }: Props) {
+  // Calculate max for progress bar
+  const maxCount = Math.max(...data.map((d) => d.count), 1);
+
   return (
     <div className="card table-card">
-      <div className="card-title">Top Cause Subtypes (Last 7 Days)</div>
+      <div className="card-header">
+        <span className="card-title">Top Cause Subtypes (Last 7 Days)</span>
+      </div>
       <div className="table-container">
         <table>
           <thead>
             <tr>
-              <th>#</th>
-              <th>Subtype</th>
-              <th>Count</th>
-              <th>%</th>
+              <th scope="col" style={{ width: '60px' }}>#</th>
+              <th scope="col">Subtype</th>
+              <th scope="col" style={{ width: '100px', textAlign: 'right' }}>Count</th>
             </tr>
           </thead>
           <tbody>
             {data.map((item, index) => (
               <tr key={item.subtype}>
-                <td>{index + 1}</td>
-                <td>{item.subtype.replace(/_/g, ' ')}</td>
-                <td>{item.count}</td>
-                <td>{item.percentage.toFixed(1)}%</td>
+                <td style={{ color: 'var(--color-text-muted)' }}>{index + 1}</td>
+                <td>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span aria-hidden="true">{getSubtypeIcon(item.subtype)}</span>
+                      <span style={{ fontWeight: 500 }}>
+                        {item.subtype.replace(/_/g, ' ')}
+                      </span>
+                    </div>
+                    {/* Progress bar */}
+                    <div
+                      style={{
+                        height: '4px',
+                        backgroundColor: 'var(--color-border)',
+                        borderRadius: '2px',
+                        overflow: 'hidden',
+                      }}
+                    >
+                      <div
+                        style={{
+                          height: '100%',
+                          width: `${(item.count / maxCount) * 100}%`,
+                          backgroundColor: 'var(--chart-2)',
+                          borderRadius: '2px',
+                          transition: 'width 0.3s ease',
+                        }}
+                      />
+                    </div>
+                  </div>
+                </td>
+                <td style={{ textAlign: 'right', fontWeight: 600 }}>
+                  {item.count.toLocaleString()}
+                </td>
               </tr>
             ))}
             {data.length === 0 && (
               <tr>
-                <td colSpan={4} style={{ textAlign: 'center', color: '#94a3b8' }}>
-                  No data available
+                <td colSpan={3}>
+                  <div className="empty-state">
+                    <span className="empty-state-icon">📋</span>
+                    <div className="empty-state-title">No subtype data</div>
+                    <div className="empty-state-description">
+                      Subtype statistics will appear here
+                    </div>
+                  </div>
                 </td>
               </tr>
             )}

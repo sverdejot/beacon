@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import type { ActiveIncident } from '../lib/types';
+import { useDashboard } from '../context/DashboardContext';
 
 interface Props {
   data: ActiveIncident[];
@@ -8,10 +9,28 @@ interface Props {
 type SortField = 'timestamp' | 'province' | 'severity' | 'duration_mins';
 type SortDirection = 'asc' | 'desc';
 
+const severityIcons: Record<string, string> = {
+  highest: '🔴',
+  high: '🟠',
+  medium: '🟡',
+  low: '🟢',
+  unknown: '⚪',
+};
+
 export function ActiveIncidentsTable({ data }: Props) {
   const [sortField, setSortField] = useState<SortField>('timestamp');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [filter, setFilter] = useState('');
+
+  // Try to get filter context
+  let addFilter: ((filter: { type: 'province' | 'severity' | 'cause' | 'road'; value: string; label: string }) => void) | undefined;
+  
+  try {
+    const context = useDashboard();
+    addFilter = context.addFilter;
+  } catch {
+    // Context not available
+  }
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -77,48 +96,78 @@ export function ActiveIncidentsTable({ data }: Props) {
   };
 
   const SortIndicator = ({ field }: { field: SortField }) => {
-    if (sortField !== field) return null;
-    return <span>{sortDirection === 'asc' ? ' ▲' : ' ▼'}</span>;
+    if (sortField !== field) {
+      return <span style={{ opacity: 0.3, marginLeft: '4px' }}>↕</span>;
+    }
+    return <span style={{ marginLeft: '4px' }}>{sortDirection === 'asc' ? '↑' : '↓'}</span>;
+  };
+
+  const handleProvinceClick = (province: string) => {
+    if (addFilter) {
+      addFilter({ type: 'province', value: province, label: province });
+    }
+  };
+
+  const handleCauseClick = (cause: string) => {
+    if (addFilter) {
+      addFilter({ type: 'cause', value: cause, label: cause.replace(/_/g, ' ') });
+    }
   };
 
   return (
     <div className="card table-card">
-      <div className="card-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span>Active Incidents ({sortedData.length})</span>
+      <div className="table-header">
+        <span className="card-title" style={{ margin: 0 }}>
+          Active Incidents ({sortedData.length})
+        </span>
         <input
           type="text"
-          placeholder="Filter..."
+          placeholder="Filter by province, road, or cause..."
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          style={{
-            padding: '0.25rem 0.5rem',
-            borderRadius: '0.25rem',
-            border: '1px solid #334155',
-            backgroundColor: '#0f172a',
-            color: '#f1f5f9',
-            fontSize: '0.75rem',
-          }}
+          className="table-filter-input"
+          aria-label="Filter incidents"
         />
       </div>
-      <div className="table-container">
+      <div className="table-container" role="region" aria-label="Active incidents table">
         <table>
           <thead>
             <tr>
-              <th onClick={() => handleSort('timestamp')} style={{ cursor: 'pointer' }}>
+              <th
+                onClick={() => handleSort('timestamp')}
+                className="sortable"
+                scope="col"
+                aria-sort={sortField === 'timestamp' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+              >
                 Time
                 <SortIndicator field="timestamp" />
               </th>
-              <th onClick={() => handleSort('province')} style={{ cursor: 'pointer' }}>
+              <th
+                onClick={() => handleSort('province')}
+                className="sortable"
+                scope="col"
+                aria-sort={sortField === 'province' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+              >
                 Province
                 <SortIndicator field="province" />
               </th>
-              <th>Road</th>
-              <th onClick={() => handleSort('severity')} style={{ cursor: 'pointer' }}>
+              <th scope="col">Road</th>
+              <th
+                onClick={() => handleSort('severity')}
+                className="sortable"
+                scope="col"
+                aria-sort={sortField === 'severity' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+              >
                 Severity
                 <SortIndicator field="severity" />
               </th>
-              <th>Cause</th>
-              <th onClick={() => handleSort('duration_mins')} style={{ cursor: 'pointer' }}>
+              <th scope="col">Cause</th>
+              <th
+                onClick={() => handleSort('duration_mins')}
+                className="sortable"
+                scope="col"
+                aria-sort={sortField === 'duration_mins' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
+              >
                 Duration
                 <SortIndicator field="duration_mins" />
               </th>
@@ -128,19 +177,70 @@ export function ActiveIncidentsTable({ data }: Props) {
             {sortedData.map((inc) => (
               <tr key={inc.id}>
                 <td>{formatTime(inc.timestamp)}</td>
-                <td>{inc.province}</td>
+                <td>
+                  {addFilter ? (
+                    <button
+                      onClick={() => handleProvinceClick(inc.province)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--color-primary)',
+                        cursor: 'pointer',
+                        padding: 0,
+                        font: 'inherit',
+                        textDecoration: 'underline',
+                        textDecorationStyle: 'dotted',
+                      }}
+                      title="Click to filter by this province"
+                    >
+                      {inc.province}
+                    </button>
+                  ) : (
+                    inc.province
+                  )}
+                </td>
                 <td>{inc.road_number || '-'}</td>
                 <td>
-                  <span className={`severity-badge ${inc.severity}`}>{inc.severity}</span>
+                  <span className={`severity-badge ${inc.severity}`}>
+                    <span aria-hidden="true">{severityIcons[inc.severity] || '⚪'}</span>
+                    {inc.severity}
+                  </span>
                 </td>
-                <td>{inc.cause_type.replace(/_/g, ' ') || '-'}</td>
+                <td>
+                  {addFilter ? (
+                    <button
+                      onClick={() => handleCauseClick(inc.cause_type)}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: 'var(--color-text)',
+                        cursor: 'pointer',
+                        padding: 0,
+                        font: 'inherit',
+                        textDecoration: 'underline',
+                        textDecorationStyle: 'dotted',
+                      }}
+                      title="Click to filter by this cause"
+                    >
+                      {inc.cause_type.replace(/_/g, ' ') || '-'}
+                    </button>
+                  ) : (
+                    inc.cause_type.replace(/_/g, ' ') || '-'
+                  )}
+                </td>
                 <td>{formatDuration(inc.duration_mins)}</td>
               </tr>
             ))}
             {sortedData.length === 0 && (
               <tr>
-                <td colSpan={6} style={{ textAlign: 'center', color: '#94a3b8' }}>
-                  No active incidents
+                <td colSpan={6}>
+                  <div className="empty-state">
+                    <span className="empty-state-icon">🔍</span>
+                    <div className="empty-state-title">No incidents found</div>
+                    <div className="empty-state-description">
+                      {filter ? 'Try adjusting your filter' : 'No active incidents at this time'}
+                    </div>
+                  </div>
                 </td>
               </tr>
             )}
