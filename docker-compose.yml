@@ -36,7 +36,9 @@ services:
       - 5000:5000
 
   feed:
-    build: feed
+    build:
+      context: .
+      dockerfile: build/feed/Dockerfile
     environment:
       MQTT_BROKER: tcp://broker:1883
     depends_on:
