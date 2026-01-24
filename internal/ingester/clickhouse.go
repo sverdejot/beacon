@@ -12,8 +12,8 @@ import (
 )
 
 const (
-    batchSize = 100
-    flushInterval = 5 * time.Second
+	batchSize     = 100
+	flushInterval = 5 * time.Second
 )
 
 type ClickHouseClient struct {
@@ -38,7 +38,7 @@ func NewClickHouseClient(addr, database, user, password string) (*ClickHouseClie
 		DialTimeout:     10 * time.Second,
 		ConnMaxLifetime: time.Hour,
 	})
-        if err != nil {
+	if err != nil {
 		return nil, fmt.Errorf("failed to connect to clickhouse: %w", err)
 	}
 

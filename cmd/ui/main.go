@@ -36,7 +36,7 @@ func stream(ch chan ui.MapLocation) func(w http.ResponseWriter, r *http.Request)
 					continue
 				}
 
-                fmt.Fprintf(w, "data: %s\n\n", data) //nolint:errcheck
+				fmt.Fprintf(w, "data: %s\n\n", data) //nolint:errcheck
 				err = rc.Flush()
 				if err != nil {
 					slog.ErrorContext(ctx, fmt.Sprintf("error sending event through sse (client may have closed): %s", err))
@@ -113,9 +113,9 @@ func main() {
 		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer shutdownCancel()
 
-        srv.Shutdown(shutdownCtx) //nolint:errcheck
+		srv.Shutdown(shutdownCtx) //nolint:errcheck
 		client.Disconnect(250)
-        dashboardRepo.Close() //nolint:errcheck
+		dashboardRepo.Close() //nolint:errcheck
 	}()
 
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {

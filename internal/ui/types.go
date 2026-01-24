@@ -8,19 +8,19 @@ import (
 )
 
 var icons = map[string]string{
-	"vehicle_obstruction":                       "🚗",
-	"general_obstruction":                       "⚠️",
-	"animal_presence_obstruction":               "🦌",
-	"abnormal_traffic":                          "🚦",
-	"poor_environment_conditions":               "☁️",
-	"road_surface_conditions":                   "❄️",
-	"non_weather_related_road_conditions":       "🕳️",
-	"roadworks":                                 "🚧",
-	"maintenance_works":                         "🚧",
-	"road_or_carriageway_or_lane_management":    "🚫",
-	"speed_management":                          "🐢",
+	"vehicle_obstruction":                          "🚗",
+	"general_obstruction":                          "⚠️",
+	"animal_presence_obstruction":                  "🦌",
+	"abnormal_traffic":                             "🚦",
+	"poor_environment_conditions":                  "☁️",
+	"road_surface_conditions":                      "❄️",
+	"non_weather_related_road_conditions":          "🕳️",
+	"roadworks":                                    "🚧",
+	"maintenance_works":                            "🚧",
+	"road_or_carriageway_or_lane_management":       "🚫",
+	"speed_management":                             "🐢",
 	"general_instruction_or_message_to_road_users": "ℹ️",
-	"generic_situation_record":                  "📍",
+	"generic_situation_record":                     "📍",
 }
 
 type Summary struct {
@@ -65,16 +65,16 @@ type HeatmapPoint struct {
 }
 
 type ActiveIncident struct {
-	ID          string    `json:"id"`
-	Timestamp   time.Time `json:"timestamp"`
-	Province    string    `json:"province"`
-	RoadNumber  string    `json:"road_number"`
-	RoadName    string    `json:"road_name"`
-	Severity    string    `json:"severity"`
-	CauseType   string    `json:"cause_type"`
-	DurationMins float64  `json:"duration_mins"`
-	Lat         float64   `json:"lat"`
-	Lon         float64   `json:"lon"`
+	ID           string    `json:"id"`
+	Timestamp    time.Time `json:"timestamp"`
+	Province     string    `json:"province"`
+	RoadNumber   string    `json:"road_number"`
+	RoadName     string    `json:"road_name"`
+	Severity     string    `json:"severity"`
+	CauseType    string    `json:"cause_type"`
+	DurationMins float64   `json:"duration_mins"`
+	Lat          float64   `json:"lat"`
+	Lon          float64   `json:"lon"`
 }
 
 type HourlyTrendResponse struct {
@@ -104,7 +104,6 @@ type HeatmapResponse struct {
 type ActiveIncidentsResponse struct {
 	Data []ActiveIncident `json:"data"`
 }
-
 
 func GetEmoji(recordType string) string {
 	parts := strings.Split(recordType, "/")

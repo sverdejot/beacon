@@ -42,7 +42,7 @@ func (h *Handler) writeJSON(w http.ResponseWriter, data any) {
 func (h *Handler) writeError(w http.ResponseWriter, msg string, code int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-    json.NewEncoder(w).Encode(map[string]string{"error": msg}) //nolint:errcheck
+	json.NewEncoder(w).Encode(map[string]string{"error": msg}) //nolint:errcheck
 }
 
 func (h *Handler) handleSummary(w http.ResponseWriter, r *http.Request) {
@@ -199,6 +199,6 @@ func (h *Handler) sendSummaryEvent(ctx context.Context, w http.ResponseWriter, r
 		return err
 	}
 
-    fmt.Fprintf(w, "event: summary\ndata: %s\n\n", data) //nolint:errcheck
+	fmt.Fprintf(w, "event: summary\ndata: %s\n\n", data) //nolint:errcheck
 	return rc.Flush()
 }
