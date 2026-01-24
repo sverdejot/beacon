@@ -32,7 +32,7 @@ func main() {
 		slog.Error(fmt.Sprintf("failed to connect to clickhouse: %s", err))
 		os.Exit(1)
 	}
-	defer ch.Close()
+    defer ch.Close() //nolint:errcheck
 	slog.Info("connected to ClickHouse")
 
 	opts := mqtt.NewClientOptions().
@@ -70,7 +70,7 @@ func main() {
 	slog.Info("shutting down...")
 
 	client.Disconnect(250)
-	ch.Close()
+    ch.Close() //nolint:errcheck
 
 	slog.Info("shutdown complete")
 }

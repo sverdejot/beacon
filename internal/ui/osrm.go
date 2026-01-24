@@ -41,7 +41,7 @@ func (rs *RouteService) GetRoute(from, to datex.Coordinates) []datex.Coordinates
 	if err != nil {
 		return []datex.Coordinates{from, to}
 	}
-	defer resp.Body.Close()
+    defer resp.Body.Close() //nolint:errcheck
 
 	var osrm osrmResponse
 	if err := json.NewDecoder(resp.Body).Decode(&osrm); err != nil {

@@ -102,7 +102,7 @@ func (r *Repository) GetHourlyTrend(ctx context.Context) ([]HourlyDataPoint, err
 	if err != nil {
 		return nil, fmt.Errorf("failed to get hourly trend: %w", err)
 	}
-	defer rows.Close()
+    defer rows.Close() //nolint:errcheck
 
 	var data []HourlyDataPoint
 	for rows.Next() {
@@ -130,7 +130,7 @@ func (r *Repository) GetDailyTrend(ctx context.Context) ([]DailyDataPoint, error
 	if err != nil {
 		return nil, fmt.Errorf("failed to get daily trend: %w", err)
 	}
-	defer rows.Close()
+    defer rows.Close() //nolint:errcheck
 
 	var data []DailyDataPoint
 	for rows.Next() {
@@ -156,7 +156,7 @@ func (r *Repository) GetSeverityDistribution(ctx context.Context) ([]Distributio
 	if err != nil {
 		return nil, fmt.Errorf("failed to get severity distribution: %w", err)
 	}
-	defer rows.Close()
+    defer rows.Close() //nolint:errcheck
 
 	var data []DistributionItem
 	for rows.Next() {
@@ -182,7 +182,7 @@ func (r *Repository) GetCauseTypeDistribution(ctx context.Context) ([]Distributi
 	if err != nil {
 		return nil, fmt.Errorf("failed to get cause type distribution: %w", err)
 	}
-	defer rows.Close()
+    defer rows.Close() //nolint:errcheck
 
 	var data []DistributionItem
 	for rows.Next() {
@@ -208,7 +208,7 @@ func (r *Repository) GetProvinceDistribution(ctx context.Context) ([]Distributio
 	if err != nil {
 		return nil, fmt.Errorf("failed to get province distribution: %w", err)
 	}
-	defer rows.Close()
+    defer rows.Close() //nolint:errcheck
 
 	var data []DistributionItem
 	for rows.Next() {
@@ -239,7 +239,7 @@ func (r *Repository) GetTopRoads(ctx context.Context, limit int) ([]TopRoad, err
 	if err != nil {
 		return nil, fmt.Errorf("failed to get top roads: %w", err)
 	}
-	defer rows.Close()
+    defer rows.Close() //nolint:errcheck
 
 	var data []TopRoad
 	for rows.Next() {
@@ -281,7 +281,7 @@ func (r *Repository) GetTopSubtypes(ctx context.Context, limit int) ([]TopSubtyp
 	if err != nil {
 		return nil, fmt.Errorf("failed to get top subtypes: %w", err)
 	}
-	defer rows.Close()
+    defer rows.Close() //nolint:errcheck
 
 	var data []TopSubtype
 	for rows.Next() {
@@ -314,7 +314,7 @@ func (r *Repository) GetHeatmapData(ctx context.Context) ([]HeatmapPoint, error)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get heatmap data: %w", err)
 	}
-	defer rows.Close()
+    defer rows.Close() //nolint:errcheck
 
 	var data []HeatmapPoint
 	for rows.Next() {
@@ -349,7 +349,7 @@ func (r *Repository) GetActiveIncidents(ctx context.Context) ([]ActiveIncident, 
 	if err != nil {
 		return nil, fmt.Errorf("failed to get active incidents: %w", err)
 	}
-	defer rows.Close()
+    defer rows.Close() //nolint:errcheck
 
 	var data []ActiveIncident
 	for rows.Next() {
