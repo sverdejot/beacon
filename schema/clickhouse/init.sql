@@ -16,7 +16,9 @@ CREATE TABLE IF NOT EXISTS beacon.traffic_incidents (
     cause_subtypes Array(String),
     road_name String,
     road_number String,
-    raw_json String
+    raw_json String,
+    polyline String,
+    location_type LowCardinality(String)
 ) ENGINE = ReplacingMergeTree(version)
 PARTITION BY toYYYYMM(timestamp)
 ORDER BY (province, record_type, timestamp, id);
