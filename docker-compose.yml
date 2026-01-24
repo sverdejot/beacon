@@ -11,6 +11,16 @@ services:
       CLICKHOUSE_USER: beacon
       CLICKHOUSE_PASSWORD: beacon
 
+  dashboard:
+    build:
+      context: .
+      dockerfile: build/dashboard/Dockerfile
+    ports:
+      - 4321:4321
+    depends_on:
+      ui:
+        condition: service_started
+
   ingester:
     build:
       context: .
@@ -53,7 +63,7 @@ services:
     command: test -h broker
     restart: on-failure
 
-  map:
+  ui:
     build:
       context: .
       dockerfile: build/ui/Dockerfile
@@ -75,7 +85,7 @@ services:
       clickhouse:
         condition: service_started
 
-  ui:
+  mqttui:
     image: terdia07/mqttui:latest
     ports:
       - 8080:5000
