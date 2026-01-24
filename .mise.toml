@@ -6,12 +6,8 @@ gradle = "latest"
 graalvm = "latest"
 docker-cli = "latest"
 docker-compose = "latest"
-
+node = "20"
 
 [settings]
 experimental = true
 auto_install = true
-
-[tasks]
-start = "docker compose up"
-start-dev = "docker compose up --build"

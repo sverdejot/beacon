@@ -1,0 +1,4 @@
+# .mise/tasks/docker/prune
+#!/usr/bin/env bash
+
+docker compose up --build
