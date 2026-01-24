@@ -1,7 +1,6 @@
 package ingester
 
 import (
-	"encoding/json"
 	"strconv"
 	"time"
 
@@ -26,9 +25,8 @@ type Incident struct {
 	CauseSubtypes []string
 	RoadName      string
 	RoadNumber    string
-	RawJSON       string
-	Polyline      string
-	LocationType  string
+	RawJSON      string
+	LocationType string
 }
 
 func RecordToIncident(r *datex.Record, topic string, rawJSON string) *Incident {
@@ -92,12 +90,6 @@ func RecordToIncidentWithRoute(r *datex.Record, topic string, rawJSON string, lo
 
 	if loc != nil {
 		inc.LocationType = loc.Type
-		if len(loc.Path) > 0 {
-			polylineJSON, err := json.Marshal(loc.Path)
-			if err == nil {
-				inc.Polyline = string(polylineJSON)
-			}
-		}
 	}
 
 	return inc
