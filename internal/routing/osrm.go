@@ -13,6 +13,13 @@ const (
 	getRouteTemplatePath = "%s/route/v1/driving/%f,%f;%f,%f?overview=full&geometries=geojson"
 )
 
+// RouteResult contains the computed route path and distance
+type RouteResult struct {
+	Path     []datex.Coordinates
+	Distance float64 // distance in meters
+	Duration float64 // duration in seconds
+}
+
 type RouteService struct {
 	url    string
 	client *http.Client
@@ -23,6 +30,8 @@ type osrmResponse struct {
 		Geometry struct {
 			Coordinates [][]float64 `json:"coordinates"`
 		} `json:"geometry"`
+		Distance float64 `json:"distance"` // distance in meters
+		Duration float64 `json:"duration"` // duration in seconds
 	} `json:"routes"`
 }
 
@@ -33,28 +42,47 @@ func NewRouteService(url string) *RouteService {
 	}
 }
 
+// GetRoute returns just the path coordinates (for backward compatibility)
 func (rs *RouteService) GetRoute(from, to datex.Coordinates) []datex.Coordinates {
+	result := rs.GetRouteWithDistance(from, to)
+	return result.Path
+}
+
+// GetRouteWithDistance returns the full route result including distance
+func (rs *RouteService) GetRouteWithDistance(from, to datex.Coordinates) RouteResult {
 	url := fmt.Sprintf(getRouteTemplatePath,
 		rs.url, from.Lon, from.Lat, to.Lon, to.Lat)
 
+	fallback := RouteResult{
+		Path:     []datex.Coordinates{from, to},
+		Distance: 0,
+		Duration: 0,
+	}
+
 	resp, err := rs.client.Get(url)
 	if err != nil {
-		return []datex.Coordinates{from, to}
+		return fallback
 	}
 	defer resp.Body.Close() //nolint:errcheck
 
 	var osrm osrmResponse
 	if err := json.NewDecoder(resp.Body).Decode(&osrm); err != nil {
-		return []datex.Coordinates{from, to}
+		return fallback
 	}
 
 	if len(osrm.Routes) == 0 {
-		return []datex.Coordinates{from, to}
+		return fallback
 	}
 
-	coords := make([]datex.Coordinates, len(osrm.Routes[0].Geometry.Coordinates))
-	for i, c := range osrm.Routes[0].Geometry.Coordinates {
+	route := osrm.Routes[0]
+	coords := make([]datex.Coordinates, len(route.Geometry.Coordinates))
+	for i, c := range route.Geometry.Coordinates {
 		coords[i] = datex.Coordinates{Lat: c[1], Lon: c[0]}
 	}
-	return coords
+
+	return RouteResult{
+		Path:     coords,
+		Distance: route.Distance,
+		Duration: route.Duration,
+	}
 }

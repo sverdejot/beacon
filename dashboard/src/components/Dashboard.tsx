@@ -11,6 +11,13 @@ import { TopSubtypesTable } from './TopSubtypesTable';
 import { ActiveIncidentsTable } from './ActiveIncidentsTable';
 import { IncidentHeatmap } from './IncidentHeatmap';
 import { LiveMap } from './LiveMap';
+import { ImpactMetricsCards } from './ImpactMetricsCards';
+import { DurationDistributionChart } from './DurationDistributionChart';
+import { RouteAnalysisTable } from './RouteAnalysisTable';
+import { DirectionalFlowChart } from './DirectionalFlowChart';
+import { RushHourComparison } from './RushHourComparison';
+import { HotspotsMap } from './HotspotsMap';
+import { AnomaliesPanel } from './AnomaliesPanel';
 
 export default function Dashboard() {
   const data = useDashboardData();
@@ -49,16 +56,34 @@ export default function Dashboard() {
 
       <SummaryCards summary={summary} />
 
+      <h2 className="section-title">Impact Metrics</h2>
+      <ImpactMetricsCards data={data.impactSummary} />
+
+      <h2 className="section-title">Alerts & Anomalies</h2>
+      <AnomaliesPanel data={data.anomalies} />
+
       <h2 className="section-title">Trends</h2>
       <div className="grid grid-cols-2">
         <HourlyTrendChart data={data.hourlyTrend} />
         <DailyTrendChart data={data.dailyTrend} />
       </div>
 
+      <h2 className="section-title">Time Analysis</h2>
+      <div className="grid grid-cols-2">
+        <RushHourComparison data={data.rushHourStats} />
+        <DurationDistributionChart data={data.durationDistribution} />
+      </div>
+
       <h2 className="section-title">Distribution</h2>
       <div className="grid grid-cols-3">
         <SeverityDonut data={data.severityDistribution} />
         <CauseTypeChart data={data.causeTypeDistribution} />
+        <DirectionalFlowChart data={data.directionAnalysis} />
+      </div>
+
+      <h2 className="section-title">Corridor Analysis</h2>
+      <div className="grid grid-cols-2">
+        <RouteAnalysisTable data={data.routeAnalysis} />
         <ProvinceChart data={data.provinceDistribution} />
       </div>
 
@@ -68,7 +93,10 @@ export default function Dashboard() {
         <TopSubtypesTable data={data.topSubtypes} />
       </div>
 
-      <h2 className="section-title">Heatmap</h2>
+      <h2 className="section-title">Recurring Hotspots</h2>
+      <HotspotsMap data={data.hotspots} />
+
+      <h2 className="section-title">Density Heatmap</h2>
       <IncidentHeatmap data={data.heatmapData} />
 
       <h2 className="section-title">Active Incidents</h2>

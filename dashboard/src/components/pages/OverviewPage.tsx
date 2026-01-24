@@ -8,6 +8,13 @@ import { DailyTrendChart } from '../DailyTrendChart';
 import { SeverityDonut } from '../SeverityDonut';
 import { CauseTypeChart } from '../CauseTypeChart';
 import { SummarySkeleton, SkeletonChart } from '../Skeleton';
+import { ImpactMetricsCards } from '../ImpactMetricsCards';
+import { DurationDistributionChart } from '../DurationDistributionChart';
+import { RouteAnalysisTable } from '../RouteAnalysisTable';
+import { DirectionalFlowChart } from '../DirectionalFlowChart';
+import { RushHourComparison } from '../RushHourComparison';
+import { HotspotsMap } from '../HotspotsMap';
+import { AnomaliesPanel } from '../AnomaliesPanel';
 
 interface OverviewPageProps {
   currentPath: string;
@@ -69,6 +76,15 @@ function OverviewContent() {
         <SummaryCards summary={summary} />
       </div>
 
+      <h2 className="section-title">Impact Metrics</h2>
+      <ImpactMetricsCards data={data.impactSummary} />
+
+      <h2 className="section-title">Alerts & Anomalies</h2>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <AnomaliesPanel data={data.anomalies} />
+      </div>
+
+      <h2 className="section-title">Live Map</h2>
       <LiveMap />
 
       <h2 className="section-title">Trends</h2>
@@ -77,11 +93,24 @@ function OverviewContent() {
         <DailyTrendChart data={data.dailyTrend} />
       </div>
 
-      <h2 className="section-title">Distribution</h2>
+      <h2 className="section-title">Time Analysis</h2>
       <div className="grid grid-cols-2">
+        <RushHourComparison data={data.rushHourStats} />
+        <DurationDistributionChart data={data.durationDistribution} />
+      </div>
+
+      <h2 className="section-title">Distribution</h2>
+      <div className="grid grid-cols-3">
         <SeverityDonut data={data.severityDistribution} />
         <CauseTypeChart data={data.causeTypeDistribution} />
+        <DirectionalFlowChart data={data.directionAnalysis} />
       </div>
+
+      <h2 className="section-title">Corridor Analysis</h2>
+      <RouteAnalysisTable data={data.routeAnalysis} />
+
+      <h2 className="section-title">Recurring Hotspots</h2>
+      <HotspotsMap data={data.hotspots} />
     </>
   );
 }

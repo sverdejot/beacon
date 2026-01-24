@@ -9,6 +9,13 @@ import type {
   TopSubtype,
   HeatmapPoint,
   ActiveIncident,
+  ImpactSummary,
+  DurationBucket,
+  RouteIncidentStats,
+  DirectionStats,
+  RushHourStats,
+  Hotspot,
+  Anomaly,
 } from '../lib/types';
 
 interface DashboardData {
@@ -22,6 +29,13 @@ interface DashboardData {
   topSubtypes: TopSubtype[];
   heatmapData: HeatmapPoint[];
   activeIncidents: ActiveIncident[];
+  impactSummary: ImpactSummary | null;
+  durationDistribution: DurationBucket[];
+  routeAnalysis: RouteIncidentStats[];
+  directionAnalysis: DirectionStats[];
+  rushHourStats: RushHourStats[];
+  hotspots: Hotspot[];
+  anomalies: Anomaly[];
   loading: boolean;
   error: string | null;
 }
@@ -38,6 +52,13 @@ export function useDashboardData() {
     topSubtypes: [],
     heatmapData: [],
     activeIncidents: [],
+    impactSummary: null,
+    durationDistribution: [],
+    routeAnalysis: [],
+    directionAnalysis: [],
+    rushHourStats: [],
+    hotspots: [],
+    anomalies: [],
     loading: true,
     error: null,
   });
@@ -55,6 +76,14 @@ export function useDashboardData() {
         topSubtypesRes,
         heatmapRes,
         activeIncidentsRes,
+        // New analytics
+        impactSummaryRes,
+        durationDistributionRes,
+        routeAnalysisRes,
+        directionAnalysisRes,
+        rushHourRes,
+        hotspotsRes,
+        anomaliesRes,
       ] = await Promise.all([
         api.getSummary(),
         api.getHourlyTrend(),
@@ -66,6 +95,13 @@ export function useDashboardData() {
         api.getTopSubtypes(),
         api.getHeatmapData(),
         api.getActiveIncidents(),
+        api.getImpactSummary(),
+        api.getDurationDistribution(),
+        api.getRouteAnalysis(),
+        api.getDirectionAnalysis(),
+        api.getRushHourComparison(),
+        api.getHotspots(),
+        api.getAnomalies(),
       ]);
 
       setData({
@@ -79,6 +115,13 @@ export function useDashboardData() {
         topSubtypes: topSubtypesRes.data || [],
         heatmapData: heatmapRes.data || [],
         activeIncidents: activeIncidentsRes.data || [],
+        impactSummary: impactSummaryRes.data || null,
+        durationDistribution: durationDistributionRes.data || [],
+        routeAnalysis: routeAnalysisRes.data || [],
+        directionAnalysis: directionAnalysisRes.data || [],
+        rushHourStats: rushHourRes.data || [],
+        hotspots: hotspotsRes.data || [],
+        anomalies: anomaliesRes.data || [],
         loading: false,
         error: null,
       });

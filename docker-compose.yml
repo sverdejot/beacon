@@ -39,6 +39,8 @@ services:
         condition: service_started
       osrm:
         condition: service_started
+      migrations:
+        condition: service_completed_successfully
     environment:
       MQTT_BROKER: tcp://broker:1883
       CLICKHOUSE_ADDR: clickhouse:9000

@@ -66,9 +66,10 @@ export function LiveMap({ fullHeight = false }: LiveMapProps) {
       const coords = loc.path.map((p) => [p.lat, p.lon] as [number, number]);
 
       const polyline = L.polyline(coords, {
-        color: '#3b82f6',
-        weight: 4,
-        opacity: 0.8,
+        color: '#FFCC00',
+        weight: 5,
+        dashArray: '10, 10',
+        dashOffset: '0'
       }).addTo(mapInstanceRef.current);
 
       const midIndex = Math.floor(coords.length / 2);

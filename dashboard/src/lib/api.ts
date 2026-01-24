@@ -7,6 +7,13 @@ import type {
   TopSubtypesResponse,
   HeatmapResponse,
   ActiveIncidentsResponse,
+  ImpactSummaryResponse,
+  DurationDistributionResponse,
+  RouteAnalysisResponse,
+  DirectionAnalysisResponse,
+  RushHourResponse,
+  HotspotsResponse,
+  AnomaliesResponse,
 } from './types';
 
 const API_BASE = '/api/dashboard';
@@ -57,4 +64,32 @@ export async function getHeatmapData(): Promise<HeatmapResponse> {
 
 export async function getActiveIncidents(): Promise<ActiveIncidentsResponse> {
   return fetchJSON<ActiveIncidentsResponse>(`${API_BASE}/incidents/active`);
+}
+
+export async function getImpactSummary(): Promise<ImpactSummaryResponse> {
+  return fetchJSON<ImpactSummaryResponse>(`${API_BASE}/impact/summary`);
+}
+
+export async function getDurationDistribution(): Promise<DurationDistributionResponse> {
+  return fetchJSON<DurationDistributionResponse>(`${API_BASE}/duration/distribution`);
+}
+
+export async function getRouteAnalysis(limit = 20): Promise<RouteAnalysisResponse> {
+  return fetchJSON<RouteAnalysisResponse>(`${API_BASE}/distribution/route?limit=${limit}`);
+}
+
+export async function getDirectionAnalysis(): Promise<DirectionAnalysisResponse> {
+  return fetchJSON<DirectionAnalysisResponse>(`${API_BASE}/distribution/direction`);
+}
+
+export async function getRushHourComparison(): Promise<RushHourResponse> {
+  return fetchJSON<RushHourResponse>(`${API_BASE}/patterns/rush-hour`);
+}
+
+export async function getHotspots(limit = 50): Promise<HotspotsResponse> {
+  return fetchJSON<HotspotsResponse>(`${API_BASE}/hotspots?limit=${limit}`);
+}
+
+export async function getAnomalies(): Promise<AnomaliesResponse> {
+  return fetchJSON<AnomaliesResponse>(`${API_BASE}/anomalies`);
 }

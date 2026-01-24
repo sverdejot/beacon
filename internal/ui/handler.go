@@ -30,6 +30,13 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /api/dashboard/heatmap", h.handleHeatmap)
 	mux.HandleFunc("GET /api/dashboard/incidents/active", h.handleActiveIncidents)
 	mux.HandleFunc("GET /sse/dashboard", h.handleSSE)
+	mux.HandleFunc("GET /api/dashboard/impact/summary", h.handleImpactSummary)
+	mux.HandleFunc("GET /api/dashboard/duration/distribution", h.handleDurationDistribution)
+	mux.HandleFunc("GET /api/dashboard/distribution/route", h.handleRouteAnalysis)
+	mux.HandleFunc("GET /api/dashboard/distribution/direction", h.handleDirectionAnalysis)
+	mux.HandleFunc("GET /api/dashboard/patterns/rush-hour", h.handleRushHourComparison)
+	mux.HandleFunc("GET /api/dashboard/hotspots", h.handleHotspots)
+	mux.HandleFunc("GET /api/dashboard/anomalies", h.handleAnomalies)
 }
 
 func (h *Handler) writeJSON(w http.ResponseWriter, data any) {
@@ -201,4 +208,88 @@ func (h *Handler) sendSummaryEvent(ctx context.Context, w http.ResponseWriter, r
 
 	fmt.Fprintf(w, "event: summary\ndata: %s\n\n", data) //nolint:errcheck
 	return rc.Flush()
+}
+
+func (h *Handler) handleImpactSummary(w http.ResponseWriter, r *http.Request) {
+	data, err := h.repo.GetImpactSummary(r.Context())
+	if err != nil {
+		slog.Error(fmt.Sprintf("failed to get impact summary: %s", err))
+		h.writeError(w, "failed to get impact summary", http.StatusInternalServerError)
+		return
+	}
+	h.writeJSON(w, ImpactSummaryResponse{Data: data})
+}
+
+func (h *Handler) handleDurationDistribution(w http.ResponseWriter, r *http.Request) {
+	data, err := h.repo.GetDurationDistribution(r.Context())
+	if err != nil {
+		slog.Error(fmt.Sprintf("failed to get duration distribution: %s", err))
+		h.writeError(w, "failed to get duration distribution", http.StatusInternalServerError)
+		return
+	}
+	h.writeJSON(w, DurationDistributionResponse{Data: data})
+}
+
+func (h *Handler) handleRouteAnalysis(w http.ResponseWriter, r *http.Request) {
+	limit := 20
+	if l := r.URL.Query().Get("limit"); l != "" {
+		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 {
+			limit = parsed
+		}
+	}
+
+	data, err := h.repo.GetRouteAnalysis(r.Context(), limit)
+	if err != nil {
+		slog.Error(fmt.Sprintf("failed to get route analysis: %s", err))
+		h.writeError(w, "failed to get route analysis", http.StatusInternalServerError)
+		return
+	}
+	h.writeJSON(w, RouteAnalysisResponse{Data: data})
+}
+
+func (h *Handler) handleDirectionAnalysis(w http.ResponseWriter, r *http.Request) {
+	data, err := h.repo.GetDirectionAnalysis(r.Context())
+	if err != nil {
+		slog.Error(fmt.Sprintf("failed to get direction analysis: %s", err))
+		h.writeError(w, "failed to get direction analysis", http.StatusInternalServerError)
+		return
+	}
+	h.writeJSON(w, DirectionAnalysisResponse{Data: data})
+}
+
+func (h *Handler) handleRushHourComparison(w http.ResponseWriter, r *http.Request) {
+	data, err := h.repo.GetRushHourComparison(r.Context())
+	if err != nil {
+		slog.Error(fmt.Sprintf("failed to get rush hour comparison: %s", err))
+		h.writeError(w, "failed to get rush hour comparison", http.StatusInternalServerError)
+		return
+	}
+	h.writeJSON(w, RushHourResponse{Data: data})
+}
+
+func (h *Handler) handleHotspots(w http.ResponseWriter, r *http.Request) {
+	limit := 50
+	if l := r.URL.Query().Get("limit"); l != "" {
+		if parsed, err := strconv.Atoi(l); err == nil && parsed > 0 {
+			limit = parsed
+		}
+	}
+
+	data, err := h.repo.GetHotspots(r.Context(), limit)
+	if err != nil {
+		slog.Error(fmt.Sprintf("failed to get hotspots: %s", err))
+		h.writeError(w, "failed to get hotspots", http.StatusInternalServerError)
+		return
+	}
+	h.writeJSON(w, HotspotsResponse{Data: data})
+}
+
+func (h *Handler) handleAnomalies(w http.ResponseWriter, r *http.Request) {
+	data, err := h.repo.GetAnomalies(r.Context())
+	if err != nil {
+		slog.Error(fmt.Sprintf("failed to get anomalies: %s", err))
+		h.writeError(w, "failed to get anomalies", http.StatusInternalServerError)
+		return
+	}
+	h.writeJSON(w, AnomaliesResponse{Data: data})
 }

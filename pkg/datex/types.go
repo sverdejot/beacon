@@ -14,6 +14,8 @@ type Record struct {
 	Location    Location  `json:"location"`
 	Validity    *Validity `json:"validity,omitempty"`
 	Cause       *Cause    `json:"cause,omitempty"`
+	Mobility    string    `json:"mobility,omitempty"`
+	Impact      *Impact   `json:"impact,omitempty"`
 }
 
 type Location struct {
@@ -30,15 +32,19 @@ type LinearLocation struct {
 }
 
 type PointLocation struct {
-	Coordinates Coordinates `json:"coords"`
-	Direction   string      `json:"direction,omitempty"`
-	State       string      `json:"state,omitempty"`
+	Coordinates  Coordinates `json:"coords"`
+	Direction    string      `json:"direction,omitempty"`
+	State        string      `json:"state,omitempty"`        // autonomousCommunity renamed to state by feed
+	Province     string      `json:"province,omitempty"`     // actual province
+	Municipality string      `json:"municipality,omitempty"` // municipality/city
 }
 
 type LocationPoint struct {
-	Coordinates Coordinates `json:"coords"`
-	State       string      `json:"state,omitempty"`
-	Km          *float64    `json:"km,omitempty"`
+	Coordinates  Coordinates `json:"coords"`
+	State        string      `json:"state,omitempty"`        // autonomousCommunity renamed to state by feed
+	Province     string      `json:"province,omitempty"`     // actual province
+	Municipality string      `json:"municipality,omitempty"` // municipality/city
+	Km           *float64    `json:"km,omitempty"`
 }
 
 type Coordinates struct {
@@ -58,6 +64,14 @@ type Validity struct {
 type Cause struct {
 	Type     string   `json:"type,omitempty"`
 	Subtypes []string `json:"subtypes,omitempty"`
+}
+
+type Impact struct {
+	Delays *Delays `json:"delays,omitempty"`
+}
+
+type Delays struct {
+	Delay *float64 `json:"delay,omitempty"` // delay in seconds
 }
 
 type RoadInfo struct {

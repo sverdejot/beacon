@@ -3,6 +3,7 @@ package shared
 import (
 	"strings"
 
+	"github.com/sverdejot/beacon/internal/routing"
 	"github.com/sverdejot/beacon/pkg/datex"
 )
 
@@ -40,16 +41,19 @@ func GetEmoji(recordType string) string {
 }
 
 type MapLocation struct {
-	ID    string              `json:"id"`
-	Type  string              `json:"type"`
-	Icon  string              `json:"icon"`
-	Point *datex.Coordinates  `json:"point,omitempty"`
-	Path  []datex.Coordinates `json:"path,omitempty"`
+	ID       string              `json:"id"`
+	Type     string              `json:"type"`
+	Icon     string              `json:"icon"`
+	Point    *datex.Coordinates  `json:"point,omitempty"`
+	Path     []datex.Coordinates `json:"path,omitempty"`
+	Distance float64             `json:"distance,omitempty"` // distance in meters (for segments)
+	Duration float64             `json:"duration,omitempty"` // duration in seconds (for segments)
 }
 
 // RouteProvider is an interface for services that compute routes between coordinates
 type RouteProvider interface {
 	GetRoute(from, to datex.Coordinates) []datex.Coordinates
+	GetRouteWithDistance(from, to datex.Coordinates) routing.RouteResult
 }
 
 func RecordToMapLocation(r *datex.Record, rs RouteProvider, recordType string) *MapLocation {
@@ -61,12 +65,14 @@ func RecordToMapLocation(r *datex.Record, rs RouteProvider, recordType string) *
 		if from.Empty() || to.Empty() {
 			return nil
 		}
-		path := rs.GetRoute(from, to)
+		routeResult := rs.GetRouteWithDistance(from, to)
 		return &MapLocation{
-			ID:   r.ID,
-			Type: "segment",
-			Icon: icon,
-			Path: path,
+			ID:       r.ID,
+			Type:     "segment",
+			Icon:     icon,
+			Path:     routeResult.Path,
+			Distance: routeResult.Distance,
+			Duration: routeResult.Duration,
 		}
 	}
 	if r.Location.Point != nil {

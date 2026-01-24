@@ -11,6 +11,93 @@ type Summary struct {
 	AvgDurationMins float64 `json:"avg_duration_mins"`
 }
 
+type ImpactSummary struct {
+	TotalAffectedKm    float64 `json:"total_affected_km"`
+	AvgAffectedKm      float64 `json:"avg_affected_km"`
+	IncidentsWithKm    int32   `json:"incidents_with_km"`
+	TopProvince        string  `json:"top_province"`
+	TopProvinceCount   int32   `json:"top_province_count"`
+	TopRoad            string  `json:"top_road"`
+	TopRoadCount       int32   `json:"top_road_count"`
+	WeatherImpactPct   float64 `json:"weather_impact_pct"`
+	WeatherIncidents   int32   `json:"weather_incidents"`
+	TotalIncidents     int32   `json:"total_incidents"`
+}
+
+type ImpactSummaryResponse struct {
+	Data *ImpactSummary `json:"data"`
+}
+
+type DurationBucket struct {
+	Bucket    string  `json:"bucket"`     // e.g., "0-15", "15-30", etc.
+	Count     int32   `json:"count"`
+	AvgMins   float64 `json:"avg_mins"`
+}
+
+type DurationDistributionResponse struct {
+	Data []DurationBucket `json:"data"`
+}
+
+type RouteIncidentStats struct {
+	RoadNumber   string  `json:"road_number"`
+	RoadName     string  `json:"road_name"`
+	IncidentCount int32  `json:"incident_count"`
+	AvgSeverity  float64 `json:"avg_severity"`
+	TotalLengthKm float64 `json:"total_length_km"`
+	CommonCauses []string `json:"common_causes"`
+}
+
+type RouteAnalysisResponse struct {
+	Data []RouteIncidentStats `json:"data"`
+}
+
+type DirectionStats struct {
+	Direction     string `json:"direction"`
+	IncidentCount int32  `json:"incident_count"`
+	Percentage    float64 `json:"percentage"`
+}
+
+type DirectionAnalysisResponse struct {
+	Data []DirectionStats `json:"data"`
+}
+
+type RushHourStats struct {
+	Period        string  `json:"period"`      // "morning_rush", "evening_rush", "off_peak"
+	IncidentCount int32   `json:"incident_count"`
+	AvgSeverity   float64 `json:"avg_severity"`
+	AvgDuration   float64 `json:"avg_duration_mins"`
+}
+
+type RushHourResponse struct {
+	Data []RushHourStats `json:"data"`
+}
+
+type Hotspot struct {
+	Lat           float64 `json:"lat"`
+	Lon           float64 `json:"lon"`
+	IncidentCount int32   `json:"incident_count"`
+	Recurrence    int32   `json:"recurrence"`      // number of distinct days with incidents
+	TopCause      string  `json:"top_cause"`
+	AvgSeverity   float64 `json:"avg_severity"`
+}
+
+type HotspotsResponse struct {
+	Data []Hotspot `json:"data"`
+}
+
+type Anomaly struct {
+	Dimension   string  `json:"dimension"`    // "province", "cause_type", "hour"
+	Value       string  `json:"value"`        // e.g., "madrid", "accident"
+	CurrentCount int32  `json:"current_count"`
+	BaselineCount float64 `json:"baseline_count"`
+	Deviation   float64 `json:"deviation"`    // percentage deviation from baseline
+	Severity    string  `json:"severity"`     // "low", "medium", "high"
+}
+
+type AnomaliesResponse struct {
+	Data []Anomaly `json:"data"`
+}
+
 type HourlyDataPoint struct {
 	Hour  time.Time `json:"hour"`
 	Count int32     `json:"count"`
