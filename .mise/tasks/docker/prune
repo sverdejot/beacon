@@ -2,5 +2,5 @@
 #!/usr/bin/env bash
 
 docker compose stop
-docker compose rm
-docker volume prune
+docker compose rm -f
+docker volume prune -f

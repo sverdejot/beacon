@@ -1,5 +1,3 @@
-CREATE DATABASE IF NOT EXISTS beacon;
-
 CREATE TABLE IF NOT EXISTS beacon.traffic_incidents (
     id String,
     version Int32,

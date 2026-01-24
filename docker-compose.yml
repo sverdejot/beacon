@@ -3,12 +3,14 @@ services:
     image: valkey/valkey:8-alpine
 
   clickhouse:
-    image: clickhouse/clickhouse-server:latest
+    image: clickhouse/clickhouse-server
     ports:
       - "8123:8123"
       - "9000:9000"
-    volumes:
-      - ./schema/clickhouse:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: wget --spider -q localhost:8123/ping
+      interval: 2s
+      retries: 10
     environment:
       CLICKHOUSE_DB: beacon
       CLICKHOUSE_USER: beacon
@@ -104,3 +106,18 @@ services:
     depends_on:
       health:
         condition: service_completed_successfully
+
+  migrations:
+    image: migrate/migrate
+    volumes:
+      - ./schema/clickhouse:/migrations
+    command:
+    - "-path"
+    - "/migrations"
+    - "-database"
+    - "clickhouse://clickhouse:9000?username=beacon&password=beacon&database=beacon&x-multi-statement=true"
+    - "up"
+    restart: no
+    depends_on:
+      clickhouse:
+        condition: service_healthy

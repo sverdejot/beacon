@@ -7,6 +7,7 @@ graalvm = "latest"
 docker-cli = "latest"
 docker-compose = "latest"
 node = "20"
+gomigrate = "latest"
 
 [settings]
 experimental = true

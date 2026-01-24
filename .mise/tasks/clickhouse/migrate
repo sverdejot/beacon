@@ -1,0 +1,4 @@
+# .mise/tasks/clickhouse/migrate
+#!/usr/bin/env bash
+
+docker compose up migrations
