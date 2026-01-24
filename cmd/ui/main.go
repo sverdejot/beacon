@@ -12,7 +12,6 @@ import (
 
 	"github.com/caarlos0/env/v11"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
-	"github.com/sverdejot/beacon/internal/dashboard"
 	"github.com/sverdejot/beacon/internal/ui"
 	"github.com/sverdejot/beacon/pkg/datex"
 )
@@ -76,12 +75,12 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	dashboardRepo, err := dashboard.NewRepository(cfg.ClickHouseAddr, cfg.ClickHouseDatabase, cfg.ClickHouseUser, cfg.ClickHousePassword)
+	dashboardRepo, err := ui.NewRepository(cfg.ClickHouseAddr, cfg.ClickHouseDatabase, cfg.ClickHouseUser, cfg.ClickHousePassword)
 	if err != nil {
 		slog.Error(fmt.Sprintf("failed to connect to ClickHouse: %s", err))
 		os.Exit(1)
 	}
-	dashboardHandler := dashboard.NewHandler(dashboardRepo)
+	dashboardHandler := ui.NewHandler(dashboardRepo)
 
 	routeService := ui.NewRouteService(cfg.OSRMURL)
 
