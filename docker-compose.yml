@@ -21,7 +21,7 @@ services:
     ports:
       - 4321:4321
     depends_on:
-      ui:
+      api:
         condition: service_started
 
   ingester:
@@ -72,10 +72,10 @@ services:
     command: test -h broker
     restart: on-failure
 
-  ui:
+  api:
     build:
       context: .
-      dockerfile: build/ui/Dockerfile
+      dockerfile: build/api/Dockerfile
     ports:
       - 8081:8081
     environment:
@@ -94,7 +94,7 @@ services:
       valkey:
         condition: service_started
 
-  mqttui:
+  ui:
     image: terdia07/mqttui:latest
     ports:
       - 8080:5000
