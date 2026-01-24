@@ -11,6 +11,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/sverdejot/beacon/internal/dashboard"
 	"github.com/sverdejot/beacon/internal/ui"
 	"github.com/sverdejot/beacon/pkg/datex"
 
@@ -22,9 +23,21 @@ const (
 	defaultHttpPort = "8081"
 	defaultOsrmUrl  = "http://localhost:5000"
 
-	brokerEnvKey  = "MQTT_BROKER"
+	// ClickHouse defaults
+	defaultClickHouseAddr     = "localhost:9000"
+	defaultClickHouseDatabase = "beacon"
+	defaultClickHouseUser     = "beacon"
+	defaultClickHousePassword = "beacon"
+
+	brokerEnvKey   = "MQTT_BROKER"
 	httpPortEnvKey = "HTTP_SERVER_PORT"
 	osrmUrlEnvKey  = "OSRM_URL"
+
+	// ClickHouse env keys
+	clickHouseAddrEnvKey     = "CLICKHOUSE_ADDR"
+	clickHouseDatabaseEnvKey = "CLICKHOUSE_DATABASE"
+	clickHouseUserEnvKey     = "CLICKHOUSE_USER"
+	clickHousePasswordEnvKey = "CLICKHOUSE_PASSWORD"
 )
 
 //go:embed static/index.html
@@ -66,26 +79,53 @@ func stream(ch chan ui.MapLocation) func(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+func getEnv(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
+}
+
+func cors(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
-	broker := localBroker
-	if envBroker := os.Getenv(brokerEnvKey); envBroker != "" {
-		broker = envBroker
-	}
+	broker := getEnv(brokerEnvKey, localBroker)
 	slog.Info(fmt.Sprintf("using [%s] as broker", broker))
-	port := defaultHttpPort
-	if envHttpPort := os.Getenv(httpPortEnvKey); envHttpPort != "" {
-		port = envHttpPort
-	}
+
+	port := getEnv(httpPortEnvKey, defaultHttpPort)
 	slog.Info(fmt.Sprintf("using [%s] as http port", port))
 
-	osrmUrl := defaultOsrmUrl
-	if envOsrmUrl := os.Getenv(osrmUrlEnvKey); envOsrmUrl != "" {
-		osrmUrl = envOsrmUrl
-	}
+	osrmUrl := getEnv(osrmUrlEnvKey, defaultOsrmUrl)
 	slog.Info(fmt.Sprintf("using [%s] as OSRM host", osrmUrl))
+
+	// ClickHouse configuration
+	chAddr := getEnv(clickHouseAddrEnvKey, defaultClickHouseAddr)
+	chDatabase := getEnv(clickHouseDatabaseEnvKey, defaultClickHouseDatabase)
+	chUser := getEnv(clickHouseUserEnvKey, defaultClickHouseUser)
+	chPassword := getEnv(clickHousePasswordEnvKey, defaultClickHousePassword)
+	slog.Info(fmt.Sprintf("using [%s] as ClickHouse address", chAddr))
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
+
+	// Initialize ClickHouse repository for dashboard
+	dashboardRepo, err := dashboard.NewRepository(chAddr, chDatabase, chUser, chPassword)
+	if err != nil {
+		slog.Error(fmt.Sprintf("failed to connect to ClickHouse: %s", err))
+		os.Exit(1)
+	}
+	dashboardHandler := dashboard.NewHandler(dashboardRepo)
 
 	routeService := ui.NewRouteService(osrmUrl)
 
@@ -101,12 +141,17 @@ func main() {
 	ch := locationStream(client, routeService)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", index)
-	mux.HandleFunc("/sse", stream(ch))
+
+	// Map streaming routes
+	mux.HandleFunc("GET /", index)
+	mux.HandleFunc("GET /sse", stream(ch))
+
+	// Dashboard API routes (with CORS for dev server)
+	dashboardHandler.RegisterRoutes(mux)
 
 	srv := &http.Server{
 		Addr:    ":" + port,
-		Handler: mux,
+		Handler: cors(mux),
 	}
 
 	go func() {
@@ -118,6 +163,7 @@ func main() {
 
 		srv.Shutdown(shutdownCtx)
 		client.Disconnect(250)
+		dashboardRepo.Close()
 	}()
 
 	if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
