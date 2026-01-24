@@ -1,17 +1,26 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import type { MapLocation } from '../lib/types';
 
+interface MapLocationWithId extends MapLocation {
+  id: string;
+}
+
 export function LiveMap() {
   const mapRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapInstanceRef = useRef<any>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const leafletRef = useRef<any>(null);
-  const [connected, setConnected] = useState(false);
-  const [eventCount, setEventCount] = useState(0);
+  const addedIdsRef = useRef<Set<string>>(new Set());
+  const [loaded, setLoaded] = useState(false);
+  const [incidentCount, setIncidentCount] = useState(0);
 
-  const addLocation = useCallback((loc: MapLocation) => {
+  const addLocation = useCallback((loc: MapLocationWithId) => {
     if (!mapInstanceRef.current || !leafletRef.current) return;
+
+    // Skip if already added
+    if (addedIdsRef.current.has(loc.id)) return;
+    addedIdsRef.current.add(loc.id);
 
     const L = leafletRef.current;
     const icon = loc.icon || '\ud83d\udccd';
@@ -42,7 +51,7 @@ export function LiveMap() {
       );
     }
 
-    setEventCount((c) => c + 1);
+    setIncidentCount((c) => c + 1);
   }, []);
 
   useEffect(() => {
@@ -67,24 +76,29 @@ export function LiveMap() {
         }).addTo(mapInstanceRef.current);
       }
 
-      // Connect to SSE
-      eventSource = new EventSource('/sse');
+      // Fetch existing incidents first
+      try {
+        const response = await fetch('/api/map/incidents');
+        const data = await response.json();
+        if (data.data && Array.isArray(data.data)) {
+          data.data.forEach((loc: MapLocationWithId) => addLocation(loc));
+        }
+        setLoaded(true);
+      } catch (e) {
+        console.error('Failed to fetch initial incidents:', e);
+        setLoaded(true);
+      }
 
-      eventSource.onopen = () => {
-        setConnected(true);
-      };
+      // Connect to SSE for live updates
+      eventSource = new EventSource('/sse');
 
       eventSource.onmessage = (event) => {
         try {
-          const loc = JSON.parse(event.data) as MapLocation;
+          const loc = JSON.parse(event.data) as MapLocationWithId;
           addLocation(loc);
         } catch (e) {
           console.error('Failed to parse SSE location:', e);
         }
-      };
-
-      eventSource.onerror = () => {
-        setConnected(false);
       };
     };
 
@@ -105,9 +119,9 @@ export function LiveMap() {
     <div className="card livemap-card">
       <div className="card-title">
         Live Incident Map
-        <span className={`live-indicator ${connected ? 'connected' : ''}`}>
+        <span className={`live-indicator ${loaded ? 'connected' : ''}`}>
           <span className="dot" />
-          {connected ? `Live (${eventCount})` : 'Connecting...'}
+          {loaded ? `Live (${incidentCount})` : 'Loading...'}
         </span>
       </div>
       <div className="livemap-container" ref={mapRef} />

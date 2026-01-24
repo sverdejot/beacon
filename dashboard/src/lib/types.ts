@@ -22,8 +22,7 @@ export interface DistributionItem {
 }
 
 export interface TopRoad {
-  road_number: string;
-  road_name: string;
+  road: string;
   count: number;
 }
 

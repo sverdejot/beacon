@@ -14,22 +14,20 @@ export function TopRoadsTable({ data }: Props) {
             <tr>
               <th>#</th>
               <th>Road</th>
-              <th>Name</th>
               <th>Incidents</th>
             </tr>
           </thead>
           <tbody>
             {data.map((road, index) => (
-              <tr key={road.road_number}>
+              <tr key={road.road}>
                 <td>{index + 1}</td>
-                <td>{road.road_number}</td>
-                <td>{road.road_name || '-'}</td>
+                <td>{road.road}</td>
                 <td>{road.count}</td>
               </tr>
             ))}
             {data.length === 0 && (
               <tr>
-                <td colSpan={4} style={{ textAlign: 'center', color: '#94a3b8' }}>
+                <td colSpan={3} style={{ textAlign: 'center', color: '#94a3b8' }}>
                   No data available
                 </td>
               </tr>
