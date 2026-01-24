@@ -2,3 +2,6 @@ feed/**/build
 feed/.gradle
 var/
 CLAUDE.md
+**/.astro
+**/dist
+**/node_modules

@@ -1,0 +1,390 @@
+:root {
+  --color-bg: #0f172a;
+  --color-bg-card: #1e293b;
+  --color-bg-hover: #334155;
+  --color-text: #f1f5f9;
+  --color-text-muted: #94a3b8;
+  --color-border: #334155;
+  --color-primary: #3b82f6;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #06b6d4;
+
+  --severity-highest: #dc2626;
+  --severity-high: #f97316;
+  --severity-medium: #eab308;
+  --severity-low: #22c55e;
+  --severity-unknown: #6b7280;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.dashboard {
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 1rem;
+  }
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.dashboard-header h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .dashboard-header h1 {
+    font-size: 1.25rem;
+  }
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.connection-status .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-danger);
+}
+
+.connection-status.connected .dot {
+  background-color: var(--color-success);
+}
+
+.grid {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+}
+
+.grid > * {
+  min-width: 0;
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 1200px) {
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .grid-cols-4,
+  .grid-cols-3,
+  .grid-cols-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .grid {
+    gap: 0.75rem;
+  }
+}
+
+.card {
+  background-color: var(--color-bg-card);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  border: 1px solid var(--color-border);
+  min-width: 0;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: 1rem;
+  }
+}
+
+.card-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.card-value {
+  font-size: 2rem;
+  font-weight: 700;
+  word-break: break-word;
+}
+
+.card-subtitle {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 768px) {
+  .card-value {
+    font-size: 1.5rem;
+  }
+}
+
+.summary-card.active .card-value {
+  color: var(--color-primary);
+}
+
+.summary-card.severe .card-value {
+  color: var(--color-danger);
+}
+
+.summary-card.today .card-value {
+  color: var(--color-success);
+}
+
+.summary-card.duration .card-value {
+  color: var(--color-warning);
+}
+
+.chart-card {
+  height: 350px;
+  min-height: 280px;
+}
+
+.chart-container {
+  height: calc(100% - 2rem);
+  position: relative;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .chart-card {
+    height: 300px;
+  }
+}
+
+.table-card {
+  overflow: hidden;
+}
+
+.table-container {
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 400px;
+  -webkit-overflow-scrolling: touch;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  min-width: 400px;
+}
+
+thead {
+  position: sticky;
+  top: 0;
+  background-color: var(--color-bg-card);
+  z-index: 1;
+}
+
+th {
+  text-align: left;
+  padding: 0.75rem 0.5rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+td {
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+@media (max-width: 768px) {
+  table {
+    font-size: 0.75rem;
+    min-width: 350px;
+  }
+
+  th, td {
+    padding: 0.5rem 0.35rem;
+  }
+}
+
+tr:hover td {
+  background-color: var(--color-bg-hover);
+}
+
+.severity-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.severity-badge.highest {
+  background-color: rgba(220, 38, 38, 0.2);
+  color: var(--severity-highest);
+}
+
+.severity-badge.high {
+  background-color: rgba(249, 115, 22, 0.2);
+  color: var(--severity-high);
+}
+
+.severity-badge.medium {
+  background-color: rgba(234, 179, 8, 0.2);
+  color: var(--severity-medium);
+}
+
+.severity-badge.low {
+  background-color: rgba(34, 197, 94, 0.2);
+  color: var(--severity-low);
+}
+
+.severity-badge.unknown {
+  background-color: rgba(107, 114, 128, 0.2);
+  color: var(--severity-unknown);
+}
+
+.heatmap-card {
+  height: 500px;
+}
+
+.heatmap-container {
+  height: calc(100% - 2rem);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .heatmap-card {
+    height: 350px;
+  }
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-text-muted);
+}
+
+.error {
+  color: var(--color-danger);
+  text-align: center;
+  padding: 2rem;
+}
+
+.section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  margin-top: 1rem;
+}
+
+.livemap-card {
+  height: 80vh;
+  min-height: 500px;
+  margin-bottom: 1rem;
+}
+
+.livemap-card .card-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.livemap-container {
+  height: calc(100% - 2rem);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.live-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.live-indicator .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--color-danger);
+}
+
+.live-indicator.connected .dot {
+  background-color: var(--color-success);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.emoji-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+@media (max-width: 768px) {
+  .livemap-card {
+    height: 70vh;
+    min-height: 400px;
+  }
+}
