@@ -10,7 +10,6 @@ interface SparklineData {
   values: number[];
 }
 
-// Simple sparkline component
 function Sparkline({ data }: { data: SparklineData }) {
   const { values } = data;
   if (!values || values.length < 2) return null;
@@ -51,7 +50,6 @@ function Sparkline({ data }: { data: SparklineData }) {
   );
 }
 
-// Calculate trend percentage
 function calculateTrend(current: number, previous: number): { value: number; direction: 'positive' | 'negative' | 'neutral' } {
   if (previous === 0) {
     return { value: 0, direction: 'neutral' };
@@ -76,26 +74,22 @@ function generateMockSparkline(baseValue: number): SparklineData {
 }
 
 export function SummaryCards({ summary, previousSummary }: Props) {
-  // Try to get context, but handle case where it's not available
   let addFilter: ((filter: { type: 'province' | 'severity' | 'cause' | 'road'; value: string; label: string }) => void) | undefined;
   try {
     const context = useDashboard();
     addFilter = context.addFilter;
   } catch {
-    // Context not available, filtering won't work
   }
 
   if (!summary) {
     return null;
   }
 
-  const formatDuration = (mins: number): string => {
-    if (mins < 60) {
-      return `${Math.round(mins)} min`;
-    }
-    const hours = Math.floor(mins / 60);
-    const remainingMins = Math.round(mins % 60);
-    return `${hours}h ${remainingMins}m`;
+  const formatHour = (hour: number): string => {
+    if (hour < 0) return '--';
+    const period = hour >= 12 ? 'PM' : 'AM';
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}${period}`;
   };
 
   // Calculate trends (using previous data if available, otherwise mock)
@@ -111,10 +105,6 @@ export function SummaryCards({ summary, previousSummary }: Props) {
     ? calculateTrend(summary.todays_total, previousSummary.todays_total)
     : { value: 8, direction: 'positive' as const };
 
-  const durationTrend = previousSummary
-    ? calculateTrend(summary.avg_duration_mins, previousSummary.avg_duration_mins)
-    : { value: 3, direction: 'neutral' as const };
-
   const handleSevereClick = () => {
     if (addFilter) {
       addFilter({ type: 'severity', value: 'high', label: 'High & Highest' });
@@ -123,7 +113,6 @@ export function SummaryCards({ summary, previousSummary }: Props) {
 
   return (
     <div className="grid grid-cols-4">
-      {/* Active Incidents */}
       <div className="card summary-card active">
         <div className="summary-card-header">
           <div className="summary-card-icon" aria-hidden="true">
@@ -176,19 +165,18 @@ export function SummaryCards({ summary, previousSummary }: Props) {
         </div>
       </div>
 
-      {/* Avg Duration */}
-      <div className="card summary-card duration">
+      {/* Peak Hour */}
+      <div className="card summary-card peak-hour">
         <div className="summary-card-header">
           <div className="summary-card-icon" aria-hidden="true">
-            ⏱️
+            🕐
           </div>
-          <TrendBadge trend={durationTrend} />
         </div>
-        <div className="card-value">{formatDuration(summary.avg_duration_mins)}</div>
-        <div className="card-title">Avg Duration</div>
-        <div className="card-subtitle">Last 7 days</div>
+        <div className="card-value">{formatHour(summary.peak_hour)}</div>
+        <div className="card-title">Peak Hour</div>
+        <div className="card-subtitle">{summary.peak_hour_count} incidents at this hour</div>
         <div className="sparkline-container">
-          <Sparkline data={generateMockSparkline(summary.avg_duration_mins)} />
+          <Sparkline data={generateMockSparkline(summary.peak_hour_count || 10)} />
         </div>
       </div>
     </div>

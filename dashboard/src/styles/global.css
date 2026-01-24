@@ -667,6 +667,14 @@ select:focus-visible {
   color: var(--color-warning);
 }
 
+.summary-card.peak-hour .summary-card-icon {
+  background-color: rgba(168, 85, 247, 0.15);
+}
+
+.summary-card.peak-hour .card-value {
+  color: #a855f7;
+}
+
 .sparkline-container {
   height: 32px;
   margin-top: 0.75rem;

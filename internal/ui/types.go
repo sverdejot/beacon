@@ -5,10 +5,11 @@ import (
 )
 
 type Summary struct {
-	ActiveIncidents int32   `json:"active_incidents"`
-	SevereIncidents int32   `json:"severe_incidents"`
-	TodaysTotal     int32   `json:"todays_total"`
-	AvgDurationMins float64 `json:"avg_duration_mins"`
+	ActiveIncidents int32  `json:"active_incidents"`
+	SevereIncidents int32  `json:"severe_incidents"`
+	TodaysTotal     int32  `json:"todays_total"`
+	PeakHour        int32  `json:"peak_hour"`        // 0-23, hour with most incidents today
+	PeakHourCount   int32  `json:"peak_hour_count"`  // incident count during peak hour
 }
 
 type ImpactSummary struct {

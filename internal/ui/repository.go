@@ -73,15 +73,21 @@ func (r *Repository) GetSummary(ctx context.Context) (*Summary, error) {
 		return nil, fmt.Errorf("failed to get today's total: %w", err)
 	}
 
+	// Peak hour today (hour with most incidents)
 	err = r.conn.QueryRow(ctx, `
-		SELECT toFloat64(if(count() > 0, avg(dateDiff('minute', timestamp, end_timestamp)), 0)) AS avg_duration
+		SELECT 
+			toInt32(toHour(timestamp)) AS hour,
+			toInt32(count()) AS cnt
 		FROM beacon.traffic_incidents FINAL
-		WHERE end_timestamp > toDateTime(0)
-		  AND end_timestamp != timestamp
-		  AND timestamp >= today() - INTERVAL 7 DAY
-	`).Scan(&summary.AvgDurationMins)
+		WHERE timestamp >= today()
+		GROUP BY hour
+		ORDER BY cnt DESC
+		LIMIT 1
+	`).Scan(&summary.PeakHour, &summary.PeakHourCount)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get avg duration: %w", err)
+		// Not fatal - might be no incidents today
+		summary.PeakHour = -1
+		summary.PeakHourCount = 0
 	}
 
 	return summary, nil

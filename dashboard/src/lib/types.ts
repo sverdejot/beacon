@@ -2,7 +2,8 @@ export interface Summary {
   active_incidents: number;
   severe_incidents: number;
   todays_total: number;
-  avg_duration_mins: number;
+  peak_hour: number;       // 0-23, hour with most incidents today
+  peak_hour_count: number; // incident count during peak hour
 }
 
 export interface HourlyDataPoint {
