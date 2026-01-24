@@ -66,8 +66,10 @@ type RoadInfo struct {
 	Destination string `json:"destination,omitempty"`
 }
 
-// extracts the province from a topic like datex/situations/{province}/{record_type}
-func ExtractProvince(topic string) string {
+// beacon/v1/{country}/{region}/{category}/{event_type}
+
+// e.g. "es"
+func ExtractCountry(topic string) string {
 	parts := strings.Split(topic, "/")
 	if len(parts) >= 3 {
 		return parts[2]
@@ -75,11 +77,29 @@ func ExtractProvince(topic string) string {
 	return ""
 }
 
-// extracts the record type from a topic like datex/situations/{province}/{record_type}
-func ExtractRecordType(topic string) string {
+// e.g. madrid
+func ExtractRegion(topic string) string {
 	parts := strings.Split(topic, "/")
-	if len(parts) < 4 {
-		return ""
+	if len(parts) >= 4 {
+		return parts[3]
 	}
-	return strings.Join(parts[3:], "/")
+	return ""
+}
+
+// e.g. "situations"
+func ExtractCategory(topic string) string {
+	parts := strings.Split(topic, "/")
+	if len(parts) >= 5 {
+		return parts[4]
+	}
+	return ""
+}
+
+// e.g. "accident"
+func ExtractEventType(topic string) string {
+	parts := strings.Split(topic, "/")
+	if len(parts) >= 6 {
+		return parts[5]
+	}
+	return ""
 }

@@ -4,6 +4,7 @@ import com.beacon.schema.location.PointLocation
 import com.beacon.schema.location.SingleRoadLinearLocation
 import com.beacon.schema.location.TpegNonJunctionPoint
 import com.beacon.schema.location.TpegSimplePoint
+import com.beacon.schema.situation.GenericSituationRecord
 import com.beacon.schema.situation.SituationRecord
 import java.time.Instant
 import javax.xml.datatype.XMLGregorianCalendar
@@ -51,5 +52,19 @@ fun SituationRecord.extractProvince(): String {
         }
 
         else -> "unknown"
+    }
+}
+
+fun SituationRecord.extractEventType(): String {
+    return when (this) {
+        is GenericSituationRecord -> {
+            // Use cause type if available, fallback to class name
+            cause?.causeType?.value?.value()?.toSnakeCase() 
+                ?: this::class.java.simpleName.toSnakeCase()
+        }
+        else -> {
+            // For other record types, use the class name (e.g., "generic_situation_record")
+            this::class.java.simpleName.toSnakeCase()
+        }
     }
 }

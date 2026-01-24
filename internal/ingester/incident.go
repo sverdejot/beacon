@@ -30,8 +30,8 @@ type Incident struct {
 }
 
 func RecordToIncident(r *datex.Record, topic string, rawJSON string) *Incident {
-	province := datex.ExtractProvince(topic)
-	recordType := datex.ExtractRecordType(topic)
+	province := datex.ExtractRegion(topic)
+	recordType := datex.ExtractEventType(topic)
 
 	version, _ := strconv.ParseInt(r.Version, 10, 32)
 

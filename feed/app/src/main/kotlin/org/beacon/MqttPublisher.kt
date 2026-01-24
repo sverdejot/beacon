@@ -1,6 +1,5 @@
 package org.beacon
 
-import com.beacon.schema.situation.GenericSituationRecord
 import com.beacon.schema.situation.SituationRecord
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -38,16 +37,10 @@ class MqttPublisher(
     }
 
     fun publish(record: SituationRecord) {
-        val province = record.extractProvince().normalizeForTopic()
-        val recordType = when (record) {
-            is GenericSituationRecord -> {
-                val causeType = record.cause?.causeType?.value?.value() ?: "unknown"
-                "causes/${causeType.toSnakeCase()}"
-            }
-            else -> record::class.java.simpleName.toSnakeCase()
-        }
+        val region = record.extractProvince().normalizeForTopic()
+        val eventType = record.extractEventType()
 
-        val topic = "$topicPrefix/$province/$recordType"
+        val topic = "$topicPrefix/$region/situations/$eventType"
         val json = objectMapper.writeValueAsString(record)
 
         val message = MqttMessage(json.toByteArray()).apply {

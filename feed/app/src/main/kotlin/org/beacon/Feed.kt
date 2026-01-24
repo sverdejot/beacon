@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit
 private const val DATEX_URL = "https://nap.dgt.es/datex2/v3/dgt/SituationPublication/datex2_v36.xml"
 private val MQTT_BROKER = System.getenv("MQTT_BROKER") ?: "tcp://localhost:1883"
 private const val MQTT_CLIENT_ID = "datex-feed"
-private const val MQTT_TOPIC_PREFIX = "datex/situations"
+private const val MQTT_TOPIC_PREFIX = "beacon/v1/es"
 private const val POLL_INTERVAL_SECONDS = 60L
 
 fun main() {

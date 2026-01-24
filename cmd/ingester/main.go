@@ -61,7 +61,7 @@ func main() {
 	}
 	slog.Info("connected to MQTT broker")
 
-	tok := client.Subscribe("datex/#", 1, func(c mqtt.Client, m mqtt.Message) {
+	tok := client.Subscribe("beacon/#", 1, func(c mqtt.Client, m mqtt.Message) {
 		slog.Info(fmt.Sprintf("received message [%d] from topic [%s]", m.MessageID(), m.Topic()))
 
 		var record datex.Record
@@ -71,10 +71,10 @@ func main() {
 			return
 		}
 
-		recordType := datex.ExtractRecordType(m.Topic())
+		eventType := datex.ExtractEventType(m.Topic())
 
 		// Compute MapLocation with OSRM route
-		loc := shared.RecordToMapLocation(&record, routeService, recordType)
+		loc := shared.RecordToMapLocation(&record, routeService, eventType)
 		if loc != nil {
 			// Store in Valkey cache for map UI
 			if err := mapCache.StoreMapLocation(context.Background(), loc, record.Validity); err != nil {
@@ -91,7 +91,7 @@ func main() {
 		slog.Error(fmt.Sprintf("failed to subscribe: %s", tok.Error()))
 		os.Exit(1)
 	}
-	slog.Info("subscribed to datex/# topics")
+	slog.Info("subscribed to beacon/# topics")
 
 	<-ctx.Done()
 	slog.Info("shutting down...")
