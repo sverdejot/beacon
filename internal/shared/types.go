@@ -41,13 +41,15 @@ func GetEmoji(recordType string) string {
 }
 
 type MapLocation struct {
-	ID       string              `json:"id"`
-	Type     string              `json:"type"`
-	Icon     string              `json:"icon"`
-	Point    *datex.Coordinates  `json:"point,omitempty"`
-	Path     []datex.Coordinates `json:"path,omitempty"`
-	Distance float64             `json:"distance,omitempty"` // distance in meters (for segments)
-	Duration float64             `json:"duration,omitempty"` // duration in seconds (for segments)
+	ID        string              `json:"id"`
+	Type      string              `json:"type"`
+	Icon      string              `json:"icon"`
+	Severity  string              `json:"severity,omitempty"`
+	EventType string              `json:"eventType,omitempty"`
+	Point     *datex.Coordinates  `json:"point,omitempty"`
+	Path      []datex.Coordinates `json:"path,omitempty"`
+	Distance  float64             `json:"distance,omitempty"` // distance in meters (for segments)
+	Duration  float64             `json:"duration,omitempty"` // duration in seconds (for segments)
 }
 
 // RouteProvider is an interface for services that compute routes between coordinates
@@ -58,6 +60,10 @@ type RouteProvider interface {
 
 func RecordToMapLocation(r *datex.Record, rs RouteProvider, recordType string) *MapLocation {
 	icon := GetEmoji(recordType)
+	severity := strings.ToLower(r.Severity)
+	if severity == "" {
+		severity = "unknown"
+	}
 
 	if r.Location.Linear != nil {
 		from := r.Location.Linear.From.Coordinates
@@ -67,12 +73,14 @@ func RecordToMapLocation(r *datex.Record, rs RouteProvider, recordType string) *
 		}
 		routeResult := rs.GetRouteWithDistance(from, to)
 		return &MapLocation{
-			ID:       r.ID,
-			Type:     "segment",
-			Icon:     icon,
-			Path:     routeResult.Path,
-			Distance: routeResult.Distance,
-			Duration: routeResult.Duration,
+			ID:        r.ID,
+			Type:      "segment",
+			Icon:      icon,
+			Severity:  severity,
+			EventType: recordType,
+			Path:      routeResult.Path,
+			Distance:  routeResult.Distance,
+			Duration:  routeResult.Duration,
 		}
 	}
 	if r.Location.Point != nil {
@@ -81,10 +89,12 @@ func RecordToMapLocation(r *datex.Record, rs RouteProvider, recordType string) *
 			return nil
 		}
 		return &MapLocation{
-			ID:    r.ID,
-			Type:  "point",
-			Icon:  icon,
-			Point: &point,
+			ID:        r.ID,
+			Type:      "point",
+			Icon:      icon,
+			Severity:  severity,
+			EventType: recordType,
+			Point:     &point,
 		}
 	}
 	return nil

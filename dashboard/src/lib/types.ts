@@ -88,6 +88,8 @@ export interface Coordinates {
 export interface MapLocation {
   type: 'point' | 'segment';
   icon: string;
+  severity?: string;
+  eventType?: string;
   point?: Coordinates;
   path?: Coordinates[];
 }

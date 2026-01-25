@@ -5,20 +5,6 @@ interface MapLocationWithId extends MapLocation {
   id: string;
 }
 
-interface SeverityFilter {
-  id: string;
-  label: string;
-  color: string;
-  enabled: boolean;
-}
-
-const defaultFilters: SeverityFilter[] = [
-  { id: 'highest', label: 'Highest', color: '#dc2626', enabled: true },
-  { id: 'high', label: 'High', color: '#f97316', enabled: true },
-  { id: 'medium', label: 'Medium', color: '#eab308', enabled: true },
-  { id: 'low', label: 'Low', color: '#22c55e', enabled: true },
-];
-
 interface LiveMapProps {
   fullHeight?: boolean;
 }
@@ -34,13 +20,6 @@ export function LiveMap({ fullHeight = false }: LiveMapProps) {
   const addedIdsRef = useRef<Set<string>>(new Set());
   const [loaded, setLoaded] = useState(false);
   const [incidentCount, setIncidentCount] = useState(0);
-  const [filters, setFilters] = useState<SeverityFilter[]>(defaultFilters);
-
-  const toggleFilter = (id: string) => {
-    setFilters((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, enabled: !f.enabled } : f))
-    );
-  };
 
   const addLocation = useCallback((loc: MapLocationWithId) => {
     if (!mapInstanceRef.current || !leafletRef.current) return;
@@ -96,11 +75,9 @@ export function LiveMap({ fullHeight = false }: LiveMapProps) {
 
     const markerData = markersRef.current.get(id);
     if (markerData) {
-      // Remove marker from map
       if (markerData.marker) {
         mapInstanceRef.current.removeLayer(markerData.marker);
       }
-      // Remove polyline if exists (for segment types)
       if (markerData.polyline) {
         mapInstanceRef.current.removeLayer(markerData.polyline);
       }
@@ -132,7 +109,6 @@ export function LiveMap({ fullHeight = false }: LiveMapProps) {
           maxZoom: 19,
         }).addTo(mapInstanceRef.current);
 
-        // Add scale control
         L.control.scale({ position: 'bottomright', imperial: false }).addTo(mapInstanceRef.current);
       }
 
@@ -152,7 +128,6 @@ export function LiveMap({ fullHeight = false }: LiveMapProps) {
       // Connect to SSE for live updates
       eventSource = new EventSource('/sse');
 
-      // Handle update events (new or updated incidents)
       eventSource.addEventListener('update', (event) => {
         try {
           const loc = JSON.parse(event.data) as MapLocationWithId;
@@ -162,7 +137,6 @@ export function LiveMap({ fullHeight = false }: LiveMapProps) {
         }
       });
 
-      // Handle delete events (removed incidents)
       eventSource.addEventListener('delete', (event) => {
         try {
           const { id } = JSON.parse(event.data) as { id: string };
@@ -172,7 +146,6 @@ export function LiveMap({ fullHeight = false }: LiveMapProps) {
         }
       });
 
-      // Handle legacy message events (for backwards compatibility)
       eventSource.onmessage = (event) => {
         try {
           const loc = JSON.parse(event.data) as MapLocationWithId;
@@ -196,11 +169,10 @@ export function LiveMap({ fullHeight = false }: LiveMapProps) {
     };
   }, [addLocation, removeLocation]);
 
-  const cardClass = fullHeight ? 'card livemap-card' : 'card livemap-card';
   const cardStyle = fullHeight ? { height: 'calc(100vh - 140px)', minHeight: '500px' } : {};
 
   return (
-    <div className={cardClass} style={cardStyle}>
+    <div className="card livemap-card" style={cardStyle}>
       <div className="livemap-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <span className="card-title" style={{ margin: 0 }}>Live Incident Map</span>
@@ -208,24 +180,6 @@ export function LiveMap({ fullHeight = false }: LiveMapProps) {
             <span className="dot" />
             {loaded ? `${incidentCount} incidents` : 'Loading...'}
           </span>
-        </div>
-        <div className="map-controls">
-          {filters.map((filter) => (
-            <button
-              key={filter.id}
-              className={`map-filter-btn ${filter.enabled ? 'active' : ''}`}
-              onClick={() => toggleFilter(filter.id)}
-              aria-pressed={filter.enabled}
-              aria-label={`${filter.enabled ? 'Hide' : 'Show'} ${filter.label} severity incidents`}
-            >
-              <span
-                className="map-filter-dot"
-                style={{ backgroundColor: filter.color }}
-                aria-hidden="true"
-              />
-              {filter.label}
-            </button>
-          ))}
         </div>
       </div>
       <div className="livemap-container" ref={mapRef} role="application" aria-label="Traffic incidents map" />
@@ -235,15 +189,19 @@ export function LiveMap({ fullHeight = false }: LiveMapProps) {
 
 function createPopupContent(loc: MapLocationWithId): string {
   const icon = loc.icon || '📍';
+  const severity = loc.severity || 'Unknown';
+  const eventType = loc.eventType?.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') || 'Unknown';
+
   return `
-    <div style="font-size: 14px; min-width: 180px;">
+    <div style="font-size: 14px; min-width: 200px;">
       <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
         <span style="font-size: 20px;">${icon}</span>
-        <strong>Incident</strong>
+        <strong>${eventType}</strong>
       </div>
       <div style="color: #666; font-size: 12px;">
-        <div>Type: ${loc.type}</div>
-        <div>ID: ${loc.id.slice(0, 8)}...</div>
+        <div><strong>Severity:</strong> ${severity.charAt(0).toUpperCase() + severity.slice(1)}</div>
+        <div><strong>Type:</strong> ${loc.type}</div>
+        <div><strong>ID:</strong> ${loc.id.slice(0, 8)}...</div>
       </div>
     </div>
   `;
