@@ -91,6 +91,25 @@ export function LiveMap({ fullHeight = false }: LiveMapProps) {
     setIncidentCount((c) => c + 1);
   }, []);
 
+  const removeLocation = useCallback((id: string) => {
+    if (!mapInstanceRef.current) return;
+
+    const markerData = markersRef.current.get(id);
+    if (markerData) {
+      // Remove marker from map
+      if (markerData.marker) {
+        mapInstanceRef.current.removeLayer(markerData.marker);
+      }
+      // Remove polyline if exists (for segment types)
+      if (markerData.polyline) {
+        mapInstanceRef.current.removeLayer(markerData.polyline);
+      }
+      markersRef.current.delete(id);
+      addedIdsRef.current.delete(id);
+      setIncidentCount((c) => Math.max(0, c - 1));
+    }
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined' || !mapRef.current) return;
 
@@ -133,6 +152,27 @@ export function LiveMap({ fullHeight = false }: LiveMapProps) {
       // Connect to SSE for live updates
       eventSource = new EventSource('/sse');
 
+      // Handle update events (new or updated incidents)
+      eventSource.addEventListener('update', (event) => {
+        try {
+          const loc = JSON.parse(event.data) as MapLocationWithId;
+          addLocation(loc);
+        } catch (e) {
+          console.error('Failed to parse SSE update:', e);
+        }
+      });
+
+      // Handle delete events (removed incidents)
+      eventSource.addEventListener('delete', (event) => {
+        try {
+          const { id } = JSON.parse(event.data) as { id: string };
+          removeLocation(id);
+        } catch (e) {
+          console.error('Failed to parse SSE delete:', e);
+        }
+      });
+
+      // Handle legacy message events (for backwards compatibility)
       eventSource.onmessage = (event) => {
         try {
           const loc = JSON.parse(event.data) as MapLocationWithId;
@@ -154,7 +194,7 @@ export function LiveMap({ fullHeight = false }: LiveMapProps) {
         mapInstanceRef.current = null;
       }
     };
-  }, [addLocation]);
+  }, [addLocation, removeLocation]);
 
   const cardClass = fullHeight ? 'card livemap-card' : 'card livemap-card';
   const cardStyle = fullHeight ? { height: 'calc(100vh - 140px)', minHeight: '500px' } : {};

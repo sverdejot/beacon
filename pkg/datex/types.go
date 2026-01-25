@@ -34,16 +34,16 @@ type LinearLocation struct {
 type PointLocation struct {
 	Coordinates  Coordinates `json:"coords"`
 	Direction    string      `json:"direction,omitempty"`
-	State        string      `json:"state,omitempty"`        // autonomousCommunity renamed to state by feed
-	Province     string      `json:"province,omitempty"`     // actual province
-	Municipality string      `json:"municipality,omitempty"` // municipality/city
+	State        string      `json:"state,omitempty"`
+	Province     string      `json:"province,omitempty"`
+	Municipality string      `json:"municipality,omitempty"`
 }
 
 type LocationPoint struct {
 	Coordinates  Coordinates `json:"coords"`
-	State        string      `json:"state,omitempty"`        // autonomousCommunity renamed to state by feed
-	Province     string      `json:"province,omitempty"`     // actual province
-	Municipality string      `json:"municipality,omitempty"` // municipality/city
+	State        string      `json:"state,omitempty"`
+	Province     string      `json:"province,omitempty"`
+	Municipality string      `json:"municipality,omitempty"`
 	Km           *float64    `json:"km,omitempty"`
 }
 
@@ -71,7 +71,7 @@ type Impact struct {
 }
 
 type Delays struct {
-	Delay *float64 `json:"delay,omitempty"` // delay in seconds
+	Delay *float64 `json:"delay,omitempty"`
 }
 
 type RoadInfo struct {
@@ -116,4 +116,13 @@ func ExtractEventType(topic string) string {
 		return parts[5]
 	}
 	return ""
+}
+
+type DeletionEvent struct {
+	ID        string    `json:"id"`
+	DeletedAt time.Time `json:"deletedAt"`
+}
+
+func IsDeletionTopic(topic string) bool {
+	return ExtractCategory(topic) == "deletions"
 }

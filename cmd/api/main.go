@@ -18,7 +18,7 @@ import (
 	"github.com/sverdejot/beacon/pkg/datex"
 )
 
-func stream(ch chan shared.MapLocation) func(w http.ResponseWriter, r *http.Request) {
+func stream(updateCh chan shared.MapLocation, deleteCh chan string) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		slog.InfoContext(ctx, "client connected")
@@ -31,17 +31,31 @@ func stream(ch chan shared.MapLocation) func(w http.ResponseWriter, r *http.Requ
 			select {
 			case <-r.Context().Done():
 				return
-			case loc := <-ch:
+			case loc := <-updateCh:
 				data, err := json.Marshal(loc)
 				if err != nil {
 					slog.ErrorContext(ctx, fmt.Sprintf("error marshaling event at stream: %s", err))
 					continue
 				}
 
-				fmt.Fprintf(w, "data: %s\n\n", data) //nolint:errcheck
+				fmt.Fprintf(w, "event: update\ndata: %s\n\n", data) //nolint:errcheck
 				err = rc.Flush()
 				if err != nil {
 					slog.ErrorContext(ctx, fmt.Sprintf("error sending event through sse (client may have closed): %s", err))
+					return
+				}
+			case id := <-deleteCh:
+				deleteData := map[string]string{"id": id}
+				data, err := json.Marshal(deleteData)
+				if err != nil {
+					slog.ErrorContext(ctx, fmt.Sprintf("error marshaling delete event: %s", err))
+					continue
+				}
+
+				fmt.Fprintf(w, "event: delete\ndata: %s\n\n", data) //nolint:errcheck
+				err = rc.Flush()
+				if err != nil {
+					slog.ErrorContext(ctx, fmt.Sprintf("error sending delete event through sse (client may have closed): %s", err))
 					return
 				}
 			}
@@ -100,11 +114,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	ch := locationStream(client, mapCache)
+	updateCh, deleteCh := locationStream(client, mapCache)
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /sse", stream(ch))
+	mux.HandleFunc("GET /sse", stream(updateCh, deleteCh))
 	mux.HandleFunc("GET /api/map/incidents", mapIncidents(mapCache))
 
 	dashboardHandler.RegisterRoutes(mux)
@@ -148,11 +162,12 @@ func mapIncidents(mapCache *cache.Cache) http.HandlerFunc {
 	}
 }
 
-func locationStream(client mqtt.Client, mapCache *cache.Cache) chan shared.MapLocation {
-	ch := make(chan shared.MapLocation, 100)
+func locationStream(client mqtt.Client, mapCache *cache.Cache) (chan shared.MapLocation, chan string) {
+	updateCh := make(chan shared.MapLocation, 100)
+	deleteCh := make(chan string, 100)
 
-	tok := client.Subscribe("datex/#", 0, func(c mqtt.Client, m mqtt.Message) {
-		slog.Info(fmt.Sprintf("processing message [%d] from topic [%s]", m.MessageID(), m.Topic()))
+	tok := client.Subscribe("beacon/+/+/situations/#", 0, func(c mqtt.Client, m mqtt.Message) {
+		slog.Info(fmt.Sprintf("processing update [%d] from topic [%s]", m.MessageID(), m.Topic()))
 
 		var record datex.Record
 		if err := json.Unmarshal(m.Payload(), &record); err != nil {
@@ -160,11 +175,10 @@ func locationStream(client mqtt.Client, mapCache *cache.Cache) chan shared.MapLo
 			return
 		}
 
-		// Fetch pre-computed MapLocation from Valkey (stored by ingester)
 		ctx := context.Background()
 		loc, err := mapCache.GetMapLocation(ctx, record.ID)
 		if err != nil {
-			// Race condition: ingester hasn't stored yet, retry after small delay
+			// rc: ingester hasn't stored yet, retry after small delay
 			time.Sleep(100 * time.Millisecond)
 			loc, err = mapCache.GetMapLocation(ctx, record.ID)
 		}
@@ -174,10 +188,22 @@ func locationStream(client mqtt.Client, mapCache *cache.Cache) chan shared.MapLo
 			return
 		}
 
-		ch <- *loc
+		updateCh <- *loc
 	})
-
 	tok.Wait()
 
-	return ch
+	tok = client.Subscribe("beacon/+/+/deletions/#", 0, func(c mqtt.Client, m mqtt.Message) {
+		slog.Info(fmt.Sprintf("processing deletion [%d] from topic [%s]", m.MessageID(), m.Topic()))
+
+		var deletion datex.DeletionEvent
+		if err := json.Unmarshal(m.Payload(), &deletion); err != nil {
+			slog.Error(fmt.Sprintf("error unmarshalling deletion from topic %s: %s\n", m.Topic(), err))
+			return
+		}
+
+		deleteCh <- deletion.ID
+	})
+	tok.Wait()
+
+	return updateCh, deleteCh
 }

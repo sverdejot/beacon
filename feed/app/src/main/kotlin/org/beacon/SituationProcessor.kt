@@ -8,27 +8,64 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
 
+data class RecordMetadata(
+    val id: String,
+    val province: String,
+    val eventType: String,
+    val version: String
+)
+
 class SituationProcessor(
     private val publisher: MqttPublisher,
     private val scheduler: ScheduledExecutorService
 ) {
-    private val publishedRecords = ConcurrentHashMap.newKeySet<String>()
+    private val knownRecords = ConcurrentHashMap<String, RecordMetadata>()
     private val scheduledRecords = ConcurrentHashMap.newKeySet<String>()
 
     fun process(publication: SituationPublication) {
         var newRecords = 0
         var scheduledCount = 0
         var immediateCount = 0
+        var updatedCount = 0
+        var deletedCount = 0
+
+        // Collect current record IDs from the publication
+        val currentIds = publication.situation.flatMap { situation ->
+            situation.situationRecord.map { it.id }
+        }.toSet()
+
+        // Detect and process deletions (records that disappeared from the feed)
+        val deletedIds = knownRecords.keys - currentIds
+        deletedIds.forEach { id ->
+            knownRecords.remove(id)?.let { meta ->
+                try {
+                    publisher.publishDeletion(id, meta.province, meta.eventType)
+                    deletedCount++
+                } catch (e: Exception) {
+                    println("Failed to publish deletion for $id: ${e.message}")
+                    // Re-add to retry next poll
+                    knownRecords[id] = meta
+                }
+            }
+        }
 
         publication.situation.forEach { situation ->
             situation.situationRecord.forEach { record ->
                 val recordKey = "${record.id}:${record.version}"
+                val existingMeta = knownRecords[record.id]
 
-                if (recordKey in publishedRecords || recordKey in scheduledRecords) {
+                // Skip if same version already processed or scheduled
+                if (existingMeta?.version == record.version || recordKey in scheduledRecords) {
                     return@forEach
                 }
 
-                newRecords++
+                val isUpdate = existingMeta != null
+                if (isUpdate) {
+                    updatedCount++
+                } else {
+                    newRecords++
+                }
+
                 val startTime = record.validity.validityTimeSpecification.overallStartTime
                 val publishTime = startTime.toInstant()
                 val now = Instant.now()
@@ -43,12 +80,12 @@ class SituationProcessor(
             }
         }
 
-        if (newRecords > 0) {
-            println("Found $newRecords new records: $immediateCount published immediately, $scheduledCount scheduled")
+        if (newRecords > 0 || updatedCount > 0 || deletedCount > 0) {
+            println("Processed: $newRecords new, $updatedCount updated, $deletedCount deleted ($immediateCount immediate, $scheduledCount scheduled)")
         } else {
-            println("No new records")
+            println("No changes")
         }
-        println("Total tracked: ${publishedRecords.size} published, ${scheduledRecords.size} pending")
+        println("Total tracked: ${knownRecords.size} records, ${scheduledRecords.size} pending")
     }
 
     private fun scheduleRecord(
@@ -71,7 +108,15 @@ class SituationProcessor(
         try {
             publisher.publish(record)
             scheduledRecords.remove(recordKey)
-            publishedRecords.add(recordKey)
+
+            // Store metadata for deletion detection
+            val metadata = RecordMetadata(
+                id = record.id,
+                province = record.extractProvince().normalizeForTopic(),
+                eventType = record.extractEventType(),
+                version = record.version
+            )
+            knownRecords[record.id] = metadata
         } catch (e: Exception) {
             scheduledRecords.remove(recordKey)
             println("Failed to publish record $recordKey: ${e.message}")

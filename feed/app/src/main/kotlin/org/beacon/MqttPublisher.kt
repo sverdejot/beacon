@@ -9,6 +9,7 @@ import org.eclipse.paho.client.mqttv3.MqttClient
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
+import java.time.Instant
 
 class MqttPublisher(
     brokerUrl: String,
@@ -49,6 +50,23 @@ class MqttPublisher(
         }
 
         client.publish(topic, message)
+    }
+
+    fun publishDeletion(id: String, province: String, eventType: String) {
+        val topic = "$topicPrefix/$province/deletions/$eventType"
+        val payload = mapOf(
+            "id" to id,
+            "deletedAt" to Instant.now().toString()
+        )
+        val json = objectMapper.writeValueAsString(payload)
+
+        val message = MqttMessage(json.toByteArray()).apply {
+            qos = 1
+            isRetained = false
+        }
+
+        client.publish(topic, message)
+        println("Published deletion for $id to $topic")
     }
 
     fun disconnect() {

@@ -169,3 +169,12 @@ func (c *ClickHouseClient) Close() error {
 	c.Flush()
 	return c.conn.Close()
 }
+
+func (c *ClickHouseClient) SetEndTimestamp(id string, endTime time.Time) error {
+	query := `
+		ALTER TABLE traffic_incidents
+		UPDATE end_timestamp = ?
+		WHERE id = ? AND (end_timestamp = toDateTime('1970-01-01 00:00:00') OR end_timestamp > ?)
+	`
+	return c.conn.Exec(context.Background(), query, endTime, id, endTime)
+}

@@ -64,6 +64,27 @@ func main() {
 	tok := client.Subscribe("beacon/#", 1, func(c mqtt.Client, m mqtt.Message) {
 		slog.Info(fmt.Sprintf("received message [%d] from topic [%s]", m.MessageID(), m.Topic()))
 
+		if datex.IsDeletionTopic(m.Topic()) {
+			var deletion datex.DeletionEvent
+			if err := json.Unmarshal(m.Payload(), &deletion); err != nil {
+				slog.Error(fmt.Sprintf("failed to unmarshal deletion message: %s", err))
+				return
+			}
+
+			if err := mapCache.RemoveMapLocation(context.Background(), deletion.ID); err != nil {
+				slog.Error(fmt.Sprintf("failed to remove location from cache: %s", err))
+			} else {
+				slog.Info(fmt.Sprintf("removed incident %s from cache", deletion.ID))
+			}
+
+			if err := ch.SetEndTimestamp(deletion.ID, deletion.DeletedAt); err != nil {
+				slog.Error(fmt.Sprintf("failed to set end timestamp: %s", err))
+			} else {
+				slog.Info(fmt.Sprintf("marked incident %s as ended in ClickHouse", deletion.ID))
+			}
+			return
+		}
+
 		var record datex.Record
 		rawJSON := string(m.Payload())
 		if err := json.Unmarshal(m.Payload(), &record); err != nil {
@@ -73,16 +94,14 @@ func main() {
 
 		eventType := datex.ExtractEventType(m.Topic())
 
-		// Compute MapLocation with OSRM route
+		// compute route with OSRM
 		loc := shared.RecordToMapLocation(&record, routeService, eventType)
 		if loc != nil {
-			// Store in Valkey cache for map UI
 			if err := mapCache.StoreMapLocation(context.Background(), loc, record.Validity); err != nil {
 				slog.Error(fmt.Sprintf("failed to store location in cache: %s", err))
 			}
 		}
 
-		// Create incident with polyline for ClickHouse
 		incident := ingester.RecordToIncidentWithRoute(&record, m.Topic(), rawJSON, loc)
 		ch.Insert(incident)
 	})
