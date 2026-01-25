@@ -862,6 +862,8 @@ tr:hover td {
   height: calc(100% - 3.5rem);
   border-radius: 0.5rem;
   overflow: hidden;
+  position: relative;
+  z-index: 0;
 }
 
 .map-controls {
@@ -935,6 +937,8 @@ tr:hover td {
   height: calc(100% - 2rem);
   border-radius: 0.5rem;
   overflow: hidden;
+  position: relative;
+  z-index: 0;
 }
 
 @media (max-width: 768px) {
