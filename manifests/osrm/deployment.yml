@@ -25,15 +25,18 @@ spec:
             - sh
             - -c
             - |
-              if [ -f /data/spain-latest.osrm ]; then
+              set -e
+              if [ -f /data/.osrm-ready ]; then
                 echo "OSRM data already exists, skipping download"
                 exit 0
               fi
               echo "Downloading ESP OSRM data"
-              curl -L -o /data/spain-latest.osrm.tar.gz \
+              rm -f /data/spain-latest.osrm*
+              curl -L -f -o /data/spain-latest.osrm.tar.gz \
                 "https://github.com/sverdejot/beacon/releases/download/osrm-latest/spain-latest.osrm.tar.gz"
               tar -xzf /data/spain-latest.osrm.tar.gz -C /data
               rm /data/spain-latest.osrm.tar.gz
+              touch /data/.osrm-ready
               echo "OSRM data ready"
           volumeMounts:
             - name: data
