@@ -1,3 +1,8 @@
 feed/gradlew        text eol=lf
 feed/*.jar           binary
-
+*.ts   linguist-detectable=false
+*.tsx  linguist-detectable=false
+*.js   linguist-detectable=false
+*.jsx  linguist-detectable=false
+*.html linguist-detectable=false
+*.css  linguist-detectable=false
