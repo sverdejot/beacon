@@ -1,0 +1,36 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: beacon
+  namespace: argocd
+  labels:
+    app: beacon
+spec:
+  generators:
+    - git:
+        repoURL: https://github.com/sverdejot/beacon.git
+        revision: HEAD
+        directories:
+          - path: manifests/*
+  template:
+    metadata:
+      name: '{{path.basename}}'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/sverdejot/beacon.git
+        targetRevision: HEAD
+        path: '{{path}}'
+        directory:
+          exclude: 'secret.yml'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: beacon
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        managedNamespaceMetadata:
+          labels:
+            managed-by: argocd
