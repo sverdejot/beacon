@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# .mise/tasks/routing/package
+
+cd var/routing
+tar -czvf spain-latest.osrm.tar.gz \
+  spain-latest.osrm \
+  spain-latest.osrm.cell_metrics \
+  spain-latest.osrm.cells \
+  spain-latest.osrm.datasource_names \
+  spain-latest.osrm.ebg \
+  spain-latest.osrm.ebg_nodes \
+  spain-latest.osrm.geometry \
+  spain-latest.osrm.mldgr \
+  spain-latest.osrm.names \
+  spain-latest.osrm.partition \
+  spain-latest.osrm.properties \
+  spain-latest.osrm.ramIndex \
+  spain-latest.osrm.timestamp \
+  spain-latest.osrm.turn_duration_penalties \
+  spain-latest.osrm.turn_weight_penalties

@@ -1,5 +1,5 @@
-# .mise/tasks/routing/fetch
 #!/usr/bin/env bash
+# .mise/tasks/routing/fetch
 
-wget https://download/geofabrik.de/europe/spain-latest.osm.pbf
+wget https://download.geofabrik.de/europe/spain-latest.osm.pbf
 

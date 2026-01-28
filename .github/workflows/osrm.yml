@@ -1,0 +1,30 @@
+on:
+  schedule:
+    - cron: '0 0 1 * *' 
+  # needed to manually run the workflow
+  workflow_dispatch:
+
+jobs:
+  build-osrm:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: jdx/mise-action@v2
+      - run: mkdir -p var/routing
+      - run: mise run routing:fetch
+      - run: mise run routing:extract
+      - run: mise run routing:partition
+      - run: mise run routing:customize
+      - run: mise run routing:package
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: osrm-${{ github.run_id }}
+          name: Spain OSRM Data ${{ github.run_id }}
+          body: |
+            OSRM routing data for Spain.
+            Generated on ${{ github.event.repository.updated_at || github.event.head_commit.timestamp }}
+          files: var/routing/spain-latest.osrm.tar.gz
