@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# .mise/tasks/version
+
+gitversion -config .gitversion.yml -showvariable MajorMinorPatch
