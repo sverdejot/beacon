@@ -8,6 +8,9 @@ docker-cli = "latest"
 docker-compose = "latest"
 node = "20"
 gomigrate = "latest"
+goreleaser = "latest"
+gitversion = "latest"
+gh = "latest"
 
 [settings]
 experimental = true

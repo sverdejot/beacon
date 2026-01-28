@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# .mise/tasks/release
+
+TAG="v$(gitversion -config .gitversion.yml -showvariable MajorMinorPatch)"
+
+if git tag -l | grep -qx "$TAG"; then
+  echo "Tag $TAG already exists, skipping release"
+  exit 0
+fi
+
+git tag "$TAG"
+git push --tags
+goreleaser release --clean
