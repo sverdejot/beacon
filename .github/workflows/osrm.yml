@@ -1,5 +1,3 @@
-name: OSRM Data
-
 on:
   schedule:
     - cron: '0 0 1 * *'

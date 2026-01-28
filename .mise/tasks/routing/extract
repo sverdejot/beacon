@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 # .mise/tasks/routing/extract
 
-docker run --rm -v $(pwd)/var/routing:/data osrm/osrm-backend osrm-extract -p /opt/car.lua /data/spain-latest.osm.pbf
+docker run --rm -u $(id -u):$(id -g) -v $(pwd)/var/routing:/data osrm/osrm-backend osrm-extract -p /opt/car.lua /data/spain-latest.osm.pbf
 

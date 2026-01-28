@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 # .mise/tasks/routing/customize
 
-docker run --rm -v $(pwd)/var/routing:/data osrm/osrm-backend osrm-customize /data/spain-latest.osrm
+docker run --rm -u $(id -u):$(id -g) -v $(pwd)/var/routing:/data osrm/osrm-backend osrm-customize /data/spain-latest.osrm
