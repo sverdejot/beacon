@@ -11,6 +11,7 @@ gomigrate = "latest"
 goreleaser = "latest"
 gitversion = "latest"
 gh = "latest"
+kubectl = "latest"
 
 [settings]
 experimental = true

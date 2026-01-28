@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# .mise/tasks/clickhouse/kubernetes/migrate
+set -e
+
+NAMESPACE="beacon"
+SCHEMA_DIR="schema/clickhouse"
+JOB_MANIFEST="manifests/clickhouse/migrate-job.yml"
+
+kubectl -n "$NAMESPACE" create configmap clickhouse-migrations \
+  --from-file="$SCHEMA_DIR" \
+  --dry-run=client -o yaml | kubectl apply -f -
+
+kubectl -n "$NAMESPACE" delete job clickhouse-migrate --ignore-not-found
+
+kubectl apply -f "$JOB_MANIFEST"
+
+kubectl -n "$NAMESPACE" wait --for=condition=complete --timeout=120s job/clickhouse-migrate
+
+kubectl -n "$NAMESPACE" logs job/clickhouse-migrate
