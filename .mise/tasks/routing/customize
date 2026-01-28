@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
-# .mise/tasks/routing/fetch
+# .mise/tasks/routing/customize
 
 docker run --rm -v $(pwd)/var/routing:/data osrm/osrm-backend osrm-customize /data/spain-latest.osrm
