@@ -1,7 +1,8 @@
+name: OSRM Data
+
 on:
   schedule:
-    - cron: '0 0 1 * *' 
-  # needed to manually run the workflow
+    - cron: '0 0 1 * *'
   workflow_dispatch:
 
 jobs:
@@ -20,11 +21,20 @@ jobs:
       - run: mise run routing:customize
       - run: mise run routing:package
 
+      - name: Set release name
+        id: release
+        run: echo "name=$(date +%d/%m/%Y) - Spain OSRM data" >> $GITHUB_OUTPUT
+
+      - name: Delete existing release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release delete osrm-latest --yes || true
+
+      - name: Delete existing tag
+        run: git push origin :refs/tags/osrm-latest || true
+
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: osrm-${{ github.run_id }}
-          name: Spain OSRM Data ${{ github.run_id }}
-          body: |
-            OSRM routing data for Spain.
-            Generated on ${{ github.event.repository.updated_at || github.event.head_commit.timestamp }}
+          tag_name: osrm-latest
+          name: ${{ steps.release.outputs.name }}
           files: var/routing/spain-latest.osrm.tar.gz
