@@ -8,6 +8,7 @@ import {
   Legend,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
+import { useTranslation } from 'react-i18next';
 import type { DistributionItem } from '../lib/types';
 import { useDashboard } from '../context/DashboardContext';
 
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function CauseTypeChart({ data }: Props) {
+  const { t } = useTranslation();
   // Try to get filter context
   let addFilter: ((filter: { type: 'province' | 'severity' | 'cause' | 'road'; value: string; label: string }) => void) | undefined;
   let hasFilter: ((type: 'province' | 'severity' | 'cause' | 'road', value: string) => boolean) | undefined;
@@ -34,7 +36,7 @@ export function CauseTypeChart({ data }: Props) {
     labels: data.map((d) => d.label.replace(/_/g, ' ')),
     datasets: [
       {
-        label: 'Incidents',
+        label: t('charts.incidents'),
         data: data.map((d) => d.count),
         backgroundColor: data.map((d) => 
           hasFilter && hasFilter('cause', d.label) 
@@ -73,7 +75,7 @@ export function CauseTypeChart({ data }: Props) {
         borderColor: '#334155',
         borderWidth: 1,
         callbacks: {
-          afterBody: () => addFilter ? ['', 'Click to filter'] : [],
+          afterBody: () => addFilter ? ['', t('charts.clickToFilter')] : [],
         },
       },
     },
@@ -109,7 +111,7 @@ export function CauseTypeChart({ data }: Props) {
   return (
     <div className="card chart-card">
       <div className="card-header">
-        <span className="card-title">By Cause Type (Last 7 Days)</span>
+        <span className="card-title">{t('charts.byCauseType')}</span>
       </div>
       <div className="chart-container">
         <Bar data={chartData} options={options} />

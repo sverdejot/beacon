@@ -1,10 +1,12 @@
 import type { ImpactSummary } from '../lib/types';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   data: ImpactSummary | null;
 }
 
 export function ImpactMetricsCards({ data }: Props) {
+  const { t } = useTranslation();
   if (!data) {
     return (
       <div className="grid grid-cols-4">
@@ -13,32 +15,32 @@ export function ImpactMetricsCards({ data }: Props) {
             <div className="summary-card-icon" aria-hidden="true">🛣️</div>
           </div>
           <div className="card-value" style={{ color: 'var(--color-text-muted)' }}>--</div>
-          <div className="card-title">Total Affected</div>
-          <div className="card-subtitle">No data available</div>
+          <div className="card-title">{t('impact.totalAffected')}</div>
+          <div className="card-subtitle">{t('impact.noData')}</div>
         </div>
         <div className="card summary-card province">
           <div className="summary-card-header">
             <div className="summary-card-icon" aria-hidden="true">📍</div>
           </div>
           <div className="card-value" style={{ color: 'var(--color-text-muted)' }}>--</div>
-          <div className="card-title">Top Province</div>
-          <div className="card-subtitle">No data available</div>
+          <div className="card-title">{t('impact.topProvince')}</div>
+          <div className="card-subtitle">{t('impact.noData')}</div>
         </div>
         <div className="card summary-card road">
           <div className="summary-card-header">
             <div className="summary-card-icon" aria-hidden="true">🛤️</div>
           </div>
           <div className="card-value" style={{ color: 'var(--color-text-muted)' }}>--</div>
-          <div className="card-title">Top Road</div>
-          <div className="card-subtitle">No data available</div>
+          <div className="card-title">{t('impact.topRoad')}</div>
+          <div className="card-subtitle">{t('impact.noData')}</div>
         </div>
         <div className="card summary-card weather">
           <div className="summary-card-header">
             <div className="summary-card-icon" aria-hidden="true">🌧️</div>
           </div>
           <div className="card-value" style={{ color: 'var(--color-text-muted)' }}>--</div>
-          <div className="card-title">Weather Impact</div>
-          <div className="card-subtitle">No data available</div>
+          <div className="card-title">{t('impact.weatherImpact')}</div>
+          <div className="card-subtitle">{t('impact.noData')}</div>
         </div>
       </div>
     );
@@ -68,8 +70,8 @@ export function ImpactMetricsCards({ data }: Props) {
           </div>
         </div>
         <div className="card-value">{formatKm(data.total_affected_km)}</div>
-        <div className="card-title">Total Affected</div>
-        <div className="card-subtitle">Road segments (7 days)</div>
+        <div className="card-title">{t('impact.totalAffected')}</div>
+        <div className="card-subtitle">{t('impact.roadSegments')}</div>
       </div>
 
       {/* Top Province */}
@@ -82,8 +84,8 @@ export function ImpactMetricsCards({ data }: Props) {
         <div className="card-value" style={{ fontSize: data.top_province.length > 10 ? '1.25rem' : '2rem' }}>
           {formatProvince(data.top_province)}
         </div>
-        <div className="card-title">Top Province</div>
-        <div className="card-subtitle">{data.top_province_count} incidents (7 days)</div>
+        <div className="card-title">{t('impact.topProvince')}</div>
+        <div className="card-subtitle">{t('impact.incidents7d', { count: data.top_province_count })}</div>
       </div>
 
       {/* Top Road */}
@@ -96,8 +98,8 @@ export function ImpactMetricsCards({ data }: Props) {
         <div className="card-value" style={{ fontSize: data.top_road.length > 8 ? '1.25rem' : '2rem' }}>
           {data.top_road}
         </div>
-        <div className="card-title">Top Road</div>
-        <div className="card-subtitle">{data.top_road_count} incidents (7 days)</div>
+        <div className="card-title">{t('impact.topRoad')}</div>
+        <div className="card-subtitle">{t('impact.incidents7d', { count: data.top_road_count })}</div>
       </div>
 
       {/* Weather Impact */}
@@ -108,8 +110,8 @@ export function ImpactMetricsCards({ data }: Props) {
           </div>
         </div>
         <div className="card-value">{data.weather_impact_pct.toFixed(1)}%</div>
-        <div className="card-title">Weather Impact</div>
-        <div className="card-subtitle">{data.weather_incidents} of {data.total_incidents} incidents</div>
+        <div className="card-title">{t('impact.weatherImpact')}</div>
+        <div className="card-subtitle">{t('impact.weatherIncidents', { weather: data.weather_incidents, total: data.total_incidents })}</div>
       </div>
     </div>
   );

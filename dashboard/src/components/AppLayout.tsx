@@ -1,15 +1,33 @@
 import { type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DashboardProvider, useDashboard } from '../context/DashboardContext';
-import { Sidebar } from './Sidebar';
 import { TimeRangeSelector } from './TimeRangeSelector';
 import { ConnectionStatus } from './ConnectionStatus';
 import { ActiveFilters } from './ActiveFilters';
 import { useSSE } from '../hooks/useSSE';
+import { initI18n, type SupportedLang } from '../i18n';
+
+function getLocalizedPathFromCurrent(currentPath: string, targetLang: SupportedLang): string {
+  // Strip current language prefix if present
+  let basePath = currentPath;
+  if (basePath.startsWith('/en/')) {
+    basePath = basePath.slice(3);
+  } else if (basePath === '/en') {
+    basePath = '/';
+  }
+
+  // Add target language prefix
+  if (targetLang === 'en') {
+    return basePath === '/' ? '/en/' : `/en${basePath}`;
+  }
+  return basePath || '/';
+}
 
 interface AppLayoutProps {
   children: ReactNode;
   title: string;
   currentPath: string;
+  lang?: SupportedLang;
 }
 
 function AppLayoutInner({ children, title, currentPath }: AppLayoutProps) {
@@ -66,33 +84,41 @@ function AppLayoutInner({ children, title, currentPath }: AppLayoutProps) {
 }
 
 function SidebarContent({ currentPath }: { currentPath: string }) {
+  const { t } = useTranslation();
+
+  const langPrefix = currentPath.startsWith('/en/') || currentPath === '/en' ? '/en' : '';
+
   const navigation = [
     {
-      title: 'Main',
+      title: t('nav.main'),
       items: [
-        { id: 'overview', label: 'Overview', icon: '📊', href: '/' },
-        { id: 'map', label: 'Live Map', icon: '🗺️', href: '/map' },
+        { id: 'overview', label: t('nav.overview'), icon: '📊', href: `${langPrefix}/` },
+        { id: 'map', label: t('nav.liveMap'), icon: '🗺️', href: `${langPrefix}/map` },
       ],
     },
     {
-      title: 'Analytics',
+      title: t('nav.analytics'),
       items: [
-        { id: 'trends', label: 'Trends', icon: '📈', href: '/trends' },
-        { id: 'distribution', label: 'Distribution', icon: '📉', href: '/distribution' },
-        { id: 'heatmap', label: 'Heatmap', icon: '🔥', href: '/heatmap' },
+        { id: 'trends', label: t('nav.trends'), icon: '📈', href: `${langPrefix}/trends` },
+        { id: 'distribution', label: t('nav.distribution'), icon: '📉', href: `${langPrefix}/distribution` },
+        { id: 'heatmap', label: t('nav.heatmap'), icon: '🔥', href: `${langPrefix}/heatmap` },
       ],
     },
     {
-      title: 'Data',
+      title: t('nav.data'),
       items: [
-        { id: 'incidents', label: 'Active Incidents', icon: '🚨', href: '/incidents' },
-        { id: 'roads', label: 'Top Roads', icon: '🛣️', href: '/roads' },
+        { id: 'incidents', label: t('nav.activeIncidents'), icon: '🚨', href: `${langPrefix}/incidents` },
+        { id: 'roads', label: t('nav.topRoads'), icon: '🛣️', href: `${langPrefix}/roads` },
       ],
     },
   ];
 
   const normalizePath = (path: string) => path.replace(/\/$/, '') || '/';
   const isActive = (href: string) => normalizePath(currentPath) === normalizePath(href);
+
+  const currentLang: SupportedLang = langPrefix ? 'en' : 'es';
+  const targetLang: SupportedLang = currentLang === 'es' ? 'en' : 'es';
+  const toggleHref = getLocalizedPathFromCurrent(currentPath, targetLang);
 
   return (
     <>
@@ -125,16 +151,21 @@ function SidebarContent({ currentPath }: { currentPath: string }) {
       </nav>
 
       <div className="sidebar-footer">
-        <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-          <div style={{ marginBottom: '0.25rem' }}>Spanish Traffic Data</div>
-          <div style={{ opacity: 0.7 }}>DGT DATEX II API</div>
+        <div className="sidebar-footer-info">
+          <div>{t('sidebar.trafficData')}</div>
+          <div className="sidebar-footer-sub">{t('sidebar.dgtApi')}</div>
         </div>
+        <a href={toggleHref} className="lang-toggle" aria-label={`Switch to ${targetLang === 'en' ? 'English' : 'Español'}`}>
+          <span className={`lang-option ${currentLang === 'es' ? 'active' : ''}`}>ES</span>
+          <span className={`lang-option ${currentLang === 'en' ? 'active' : ''}`}>EN</span>
+        </a>
       </div>
     </>
   );
 }
 
 export function AppLayout(props: AppLayoutProps) {
+  initI18n(props.lang);
   return (
     <DashboardProvider>
       <AppLayoutInner {...props} />

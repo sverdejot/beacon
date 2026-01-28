@@ -1,20 +1,26 @@
+import { useTranslation } from 'react-i18next';
+import { initI18n, type SupportedLang } from '../../i18n';
 import { AppLayout } from '../AppLayout';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { IncidentHeatmap } from '../IncidentHeatmap';
 
 interface HeatmapPageProps {
   currentPath: string;
+  lang?: string;
 }
 
-export function HeatmapPage({ currentPath }: HeatmapPageProps) {
+export function HeatmapPage({ currentPath, lang }: HeatmapPageProps) {
+  initI18n(lang as SupportedLang);
+  const { t } = useTranslation();
   return (
-    <AppLayout title="Heatmap" currentPath={currentPath}>
+    <AppLayout title={t('pages.heatmap')} currentPath={currentPath} lang={lang as SupportedLang}>
       <HeatmapContent />
     </AppLayout>
   );
 }
 
 function HeatmapContent() {
+  const { t } = useTranslation();
   const data = useDashboardData();
 
   if (data.loading) {
@@ -29,8 +35,8 @@ function HeatmapContent() {
   if (data.error) {
     return (
       <div className="error">
-        <span className="error-icon">⚠️</span>
-        <div>Error loading heatmap data</div>
+        <span className="error-icon">&#x26A0;&#xFE0F;</span>
+        <div>{t('error.loadingHeatmap')}</div>
         <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>{data.error}</div>
       </div>
     );
@@ -43,15 +49,12 @@ function HeatmapContent() {
       </div>
 
       <div className="card" style={{ marginTop: '1.5rem', padding: '1.5rem' }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>About the Heatmap</h3>
+        <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>{t('heatmapPage.aboutTitle')}</h3>
         <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', lineHeight: 1.6 }}>
-          This heatmap visualizes incident density across Spain over the last 7 days. 
-          Warmer colors (red, orange) indicate areas with higher incident frequency, 
-          while cooler colors (blue) show areas with fewer incidents.
+          {t('heatmapPage.aboutDesc1')}
         </p>
         <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', lineHeight: 1.6, marginTop: '0.5rem' }}>
-          Use this view to identify recurring problem areas and traffic hotspots that may 
-          require infrastructure improvements or increased monitoring.
+          {t('heatmapPage.aboutDesc2')}
         </p>
       </div>
     </>

@@ -1,0 +1,239 @@
+{
+  "nav": {
+    "main": "Principal",
+    "analytics": "Análisis",
+    "data": "Datos",
+    "overview": "Resumen",
+    "liveMap": "Mapa en vivo",
+    "trends": "Tendencias",
+    "distribution": "Distribución",
+    "heatmap": "Mapa de calor",
+    "activeIncidents": "Incidencias activas",
+    "topRoads": "Carreteras principales"
+  },
+  "sidebar": {
+    "trafficData": "Datos de Tráfico de España",
+    "dgtApi": "API DGT DATEX II"
+  },
+  "connection": {
+    "live": "En vivo",
+    "connecting": "Conectando..."
+  },
+  "timeRange": {
+    "label": "Rango de tiempo"
+  },
+  "filters": {
+    "filteringBy": "Filtrando por:",
+    "clearAll": "Borrar todo",
+    "removeFilter": "Eliminar filtro de {{type}}: {{label}}"
+  },
+  "summary": {
+    "activeIncidents": "Incidencias activas",
+    "currentlyOngoing": "En curso actualmente",
+    "severeIncidents": "Incidencias graves",
+    "highOrHighest": "Severidad alta o máxima",
+    "todaysTotal": "Total de hoy",
+    "reportedToday": "Incidencias reportadas hoy",
+    "peakHour": "Hora punta",
+    "incidentsAtHour": "{{count}} incidencias a esta hora",
+    "clickToFilter": "Haz clic para filtrar"
+  },
+  "impact": {
+    "totalAffected": "Total afectado",
+    "noData": "Sin datos disponibles",
+    "roadSegments": "Tramos de carretera (7 días)",
+    "topProvince": "Provincia Principal",
+    "incidents7d": "{{count}} incidencias (7 días)",
+    "topRoad": "Carretera principal",
+    "weatherImpact": "Impacto meteorologico",
+    "weatherIncidents": "{{weather}} de {{total}} incidencias"
+  },
+  "table": {
+    "time": "Hora",
+    "province": "Provincia",
+    "road": "Carretera",
+    "severity": "Severidad",
+    "cause": "Causa",
+    "duration": "Duración",
+    "incidents": "Incidencias",
+    "count": "Cantidad",
+    "subtype": "Subtipo",
+    "rank": "#",
+    "affected": "Afectado",
+    "commonCauses": "Causas comunes",
+    "filterPlaceholder": "Filtrar por provincia, carretera o causa...",
+    "filterLabel": "Filtrar incidencias",
+    "clickToFilterProvince": "Haz clic para filtrar por esta provincia",
+    "clickToFilterCause": "Haz clic para filtrar por esta causa",
+    "clickToFilterRoad": "Haz clic para filtrar por esta carretera"
+  },
+  "activeIncidents": {
+    "title": "Incidencias activas ({{count}})",
+    "severeClick": "{{count}} incidencias graves. Haz clic para filtrar."
+  },
+  "empty": {
+    "noIncidents": "No se encontraron incidencias",
+    "adjustFilter": "Intenta ajustar tu filtro",
+    "noActiveIncidents": "No hay incidencias activas en este momento",
+    "noRoadData": "Sin datos de carreteras",
+    "roadStatsAppear": "Las estadísticas de carreteras apareceran aquí",
+    "noSubtypeData": "Sin datos de subtipos",
+    "subtypeStatsAppear": "Las estadísticas de subtipos apareceran aquí",
+    "noRouteData": "Sin datos de rutas disponibles",
+    "noHotspotData": "Sin datos de puntos críticos disponibles",
+    "noDurationData": "Sin datos de duración disponibles",
+    "noDirectionalData": "Sin datos direccionales disponibles",
+    "noRushHourData": "Sin datos de hora punta disponibles",
+    "loadingMap": "Cargando mapa..."
+  },
+  "error": {
+    "loadingDashboard": "Error al cargar datos del panel",
+    "loadingTrends": "Error al cargar datos de tendencias",
+    "loadingDistribution": "Error al cargar datos de distribución",
+    "loadingHeatmap": "Error al cargar datos del mapa de calor",
+    "loadingIncidents": "Error al cargar datos de incidencias",
+    "loadingRoads": "Error al cargar datos de carreteras"
+  },
+  "section": {
+    "impactMetrics": "Métricas de impacto",
+    "alertsAnomalies": "Alertas y anomalías",
+    "liveMap": "Mapa en vivo",
+    "trends": "Tendencias",
+    "timeAnalysis": "Analisis temporal",
+    "distribution": "Distribución",
+    "corridorAnalysis": "Análisis de corredores",
+    "recurringHotspots": "Puntos críticos recurrentes"
+  },
+  "charts": {
+    "hourlyTrend": "Tendencia horaria (últimas 24h)",
+    "dailyTrend": "Tendencia diaria (últimos 30 días)",
+    "bySeverity": "Por severidad (últimos 7 días)",
+    "byCauseType": "Por tipo de causa (últimos 7 días)",
+    "byProvince": "Por rrovincia (últimos 7 días)",
+    "total": "Total",
+    "severe": "Grave",
+    "incidents": "Incidencias",
+    "clickToFilter": "Haz clic para filtrar",
+    "directionalFlow": "Flujo direccional",
+    "directionSubtitle": "Incidencias por direccion de tráfico (últimos 7 días)",
+    "durationDistribution": "Distribución de duración",
+    "durationSubtitle": "Desglose de duración de incidencias (últimos 7 días)",
+    "rushHourAnalysis": "Análisis de hora punta",
+    "rushHourSubtitle": "Comparando incidencias pico vs fuera de pico (últimos 7 días)",
+    "avgMin": "{{count}} min. promedio"
+  },
+  "severity": {
+    "highest": "Máxima",
+    "high": "Alta",
+    "medium": "Media",
+    "low": "Baja",
+    "unknown": "Desconocida",
+    "critical": "Crótica"
+  },
+  "direction": {
+    "northbound": "Direccion Norte",
+    "southbound": "Direccion Sur",
+    "eastbound": "Direccion Este",
+    "westbound": "Direccion Oeste",
+    "both": "Ambas direcciones",
+    "unknown": "Desconocida",
+    "inbound": "Entrada",
+    "outbound": "Salida"
+  },
+  "rushHour": {
+    "morningRush": "Hora punta matutina",
+    "eveningRush": "Hora punta vespertina",
+    "offPeak": "Fuera de pico"
+  },
+  "duration": {
+    "0-15": "0-15 min",
+    "15-30": "15-30 min",
+    "30-60": "30-60 min",
+    "60-120": "1-2 horas",
+    "120-240": "2-4 horas",
+    "240+": "4+ horas"
+  },
+  "topRoads": {
+    "title": "Carreteras principales (últimos 7 Dias)",
+    "subtypes": "Subtipos de causa principales (últimos 7 Dias)"
+  },
+  "routeAnalysis": {
+    "title": "Análisis de rutas",
+    "subtitle": "Principales corredores por número de incidencias (últimos 7 días)"
+  },
+  "anomalies": {
+    "title": "Detección de anomalías",
+    "allNormal": "Todo normal",
+    "noPatterns": "No se detectaron patrones inusuales hoy",
+    "patternsNormal": "Los patrones de tráfico estan dentro de los rangos esperados",
+    "alert": "Alerta",
+    "anomalies": "Anomalias",
+    "patternsDetected": "{{count}} patron inusual detectado (vs. línea base de 7 días)",
+    "patternsDetected_plural": "{{count}} patrones inusuales detectados (vs línea base de 7 días)",
+    "high": "{{count}} alta",
+    "medium": "{{count}} media",
+    "low": "{{count}} baja",
+    "today": "{{count}} hoy",
+    "avg": "{{value}} promedio",
+    "moreAnomalies": "+{{count}} anomalías más"
+  },
+  "hotspots": {
+    "title": "Puntos criticos recurrentes",
+    "subtitle": "Ubicaciones con incidencias repetidas (últimos 30 días) - {{count}} puntos críticos detectados",
+    "popupTitle": "Punto crítico recurrente",
+    "incidents": "incidencias",
+    "daysWithIncidents": "días con incidencias",
+    "topCause": "Causa principal",
+    "avgSeverity": "Severidad promedio",
+    "lowSeverity": "Severidad baja",
+    "medium": "Media",
+    "high": "Alta",
+    "critical": "Critica"
+  },
+  "pages": {
+    "overview": "Resumen",
+    "liveMap": "Mapa en Vivo",
+    "trends": "Tendencias",
+    "distribution": "Distribución",
+    "heatmap": "Mapa de calor",
+    "activeIncidents": "Incidencias activas",
+    "topRoads": "Carreteras principales"
+  },
+  "trendsPage": {
+    "hourlyTrends": "Tendencias horarias",
+    "dailyTrends": "Tendencias diarias",
+    "understandingTitle": "Entendiendo los datos",
+    "hourlyDesc": "La <strong>Tendencia Horaria</strong> muestra la frecuencia de incidencias en las últimas 24 horas, ayudando a identificar periodos de maxima actividad y patrones de hora punta.",
+    "dailyDesc": "La <strong>Tendencia Diaria</strong> muestra el patron de 7 días, útil para detectar ciclos semanales y comparar incidencias de tráfico entre días laborables y fines de semana."
+  },
+  "distributionPage": {
+    "bySeverity": "Por severidad",
+    "byProvince": "Por provincia",
+    "byCauseType": "Por tipo de causa",
+    "insightsTitle": "Información de distribución",
+    "severityLevels": "Niveles de severidad",
+    "severityDesc": "Las incidencias se clasifican de Baja a Máxima segun su impacto en el flujo de tráfico y la seguridad.",
+    "causeTypes": "Tipos de causa",
+    "causeDesc": "12 categorías principales incluyendo accidentes, obras, condiciones meteorólogicas y congestión de tráfico.",
+    "geoSpread": "Cobertura geográfica",
+    "geoDesc": "Los datos cubren todas las provincias de España con actualizaciones en tiempo real de la DGT."
+  },
+  "heatmapPage": {
+    "aboutTitle": "Sobre el mapa de calor",
+    "aboutDesc1": "Este mapa de calor visualiza la densidad de incidencias en España durante los últimos 7 días. Los colores más cálidos (rojo, naranja) indican áreas con mayor frecuencia de incidencias, mientras que los colores más frios (azul) muestran áreas con menos incidencias.",
+    "aboutDesc2": "Usa esta vista para identificar áreas problematicas recurrentes y puntos críticos de tráfico que pueden requerir mejoras de infraestructura o mayor vigilancia."
+  },
+  "incidentsPage": {
+    "description": "Lista en tiempo real de todas las incidencias de tráfico activas en España. Haz clic en las cabeceras de columna para ordenar, usa el filtro para buscar."
+  },
+  "roadsPage": {
+    "description": "Estadísticas sobre las carreteras más afectadas y los subtipos de incidencias comunes en los últimos 7 días.",
+    "analysisTitle": "Analisis de Carreteras",
+    "analysisDesc1": "La lista de carreteras principales muestra que autopistas y rutas experimentan más incidencias. Estos datos pueden ayudar a identificar corredores que pueden beneficiarse de recursos adicionales de gestion de tráfico o mejoras de infraestructura.",
+    "analysisDesc2": "El desglose de subtipos revela las causas específicas detras de las incidencias, desde averías de vehículos hasta problemas relacionados con el clima, permitiendo estrategias de prevención dirigidas."
+  },
+  "lang": {
+    "toggle": "English",
+    "current": "ES"
+  }
+}

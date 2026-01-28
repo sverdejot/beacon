@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { ActiveIncident } from '../lib/types';
 import { useDashboard } from '../context/DashboardContext';
 
@@ -21,6 +22,7 @@ export function ActiveIncidentsTable({ data }: Props) {
   const [sortField, setSortField] = useState<SortField>('timestamp');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [filter, setFilter] = useState('');
+  const { t } = useTranslation();
 
   // Try to get filter context
   let addFilter: ((filter: { type: 'province' | 'severity' | 'cause' | 'road'; value: string; label: string }) => void) | undefined;
@@ -118,15 +120,15 @@ export function ActiveIncidentsTable({ data }: Props) {
     <div className="card table-card">
       <div className="table-header">
         <span className="card-title" style={{ margin: 0 }}>
-          Active Incidents ({sortedData.length})
+          {t('activeIncidents.title', { count: sortedData.length })}
         </span>
         <input
           type="text"
-          placeholder="Filter by province, road, or cause..."
+          placeholder={t('table.filterPlaceholder')}
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
           className="table-filter-input"
-          aria-label="Filter incidents"
+          aria-label={t('table.filterLabel')}
         />
       </div>
       <div className="table-container" role="region" aria-label="Active incidents table">
@@ -139,7 +141,7 @@ export function ActiveIncidentsTable({ data }: Props) {
                 scope="col"
                 aria-sort={sortField === 'timestamp' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
               >
-                Time
+                {t('table.time')}
                 <SortIndicator field="timestamp" />
               </th>
               <th
@@ -148,27 +150,27 @@ export function ActiveIncidentsTable({ data }: Props) {
                 scope="col"
                 aria-sort={sortField === 'province' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
               >
-                Province
+                {t('table.province')}
                 <SortIndicator field="province" />
               </th>
-              <th scope="col">Road</th>
+              <th scope="col">{t('table.road')}</th>
               <th
                 onClick={() => handleSort('severity')}
                 className="sortable"
                 scope="col"
                 aria-sort={sortField === 'severity' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
               >
-                Severity
+                {t('table.severity')}
                 <SortIndicator field="severity" />
               </th>
-              <th scope="col">Cause</th>
+              <th scope="col">{t('table.cause')}</th>
               <th
                 onClick={() => handleSort('duration_mins')}
                 className="sortable"
                 scope="col"
                 aria-sort={sortField === 'duration_mins' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
               >
-                Duration
+                {t('table.duration')}
                 <SortIndicator field="duration_mins" />
               </th>
             </tr>
@@ -191,7 +193,7 @@ export function ActiveIncidentsTable({ data }: Props) {
                         textDecoration: 'underline',
                         textDecorationStyle: 'dotted',
                       }}
-                      title="Click to filter by this province"
+                      title={t('table.clickToFilterProvince')}
                     >
                       {inc.province}
                     </button>
@@ -220,7 +222,7 @@ export function ActiveIncidentsTable({ data }: Props) {
                         textDecoration: 'underline',
                         textDecorationStyle: 'dotted',
                       }}
-                      title="Click to filter by this cause"
+                      title={t('table.clickToFilterCause')}
                     >
                       {inc.cause_type.replace(/_/g, ' ') || '-'}
                     </button>
@@ -236,9 +238,9 @@ export function ActiveIncidentsTable({ data }: Props) {
                 <td colSpan={6}>
                   <div className="empty-state">
                     <span className="empty-state-icon">🔍</span>
-                    <div className="empty-state-title">No incidents found</div>
+                    <div className="empty-state-title">{t('empty.noIncidents')}</div>
                     <div className="empty-state-description">
-                      {filter ? 'Try adjusting your filter' : 'No active incidents at this time'}
+                      {filter ? t('empty.adjustFilter') : t('empty.noActiveIncidents')}
                     </div>
                   </div>
                 </td>

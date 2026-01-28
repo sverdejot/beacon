@@ -1,8 +1,11 @@
+import { useTranslation } from 'react-i18next';
+
 interface ConnectionStatusProps {
   connected: boolean;
 }
 
 export function ConnectionStatus({ connected }: ConnectionStatusProps) {
+  const { t } = useTranslation();
   return (
     <div
       className={`connection-status ${connected ? 'connected' : ''}`}
@@ -10,7 +13,7 @@ export function ConnectionStatus({ connected }: ConnectionStatusProps) {
       aria-live="polite"
     >
       <span className="dot" aria-hidden="true" />
-      <span>{connected ? 'Live' : 'Connecting...'}</span>
+      <span>{connected ? t('connection.live') : t('connection.connecting')}</span>
     </div>
   );
 }

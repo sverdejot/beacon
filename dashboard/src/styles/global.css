@@ -300,6 +300,50 @@ select:focus-visible {
   border-top: 1px solid var(--color-border);
 }
 
+.sidebar-footer-info {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.sidebar-footer-sub {
+  opacity: 0.7;
+  margin-top: 0.25rem;
+}
+
+/* Language Toggle */
+.lang-toggle {
+  display: inline-flex;
+  align-items: center;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 2px;
+  text-decoration: none;
+  transition: border-color var(--transition-fast);
+}
+
+.lang-toggle:hover {
+  border-color: var(--color-text-muted);
+}
+
+.lang-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  border-radius: 4px;
+  transition: all var(--transition-fast);
+}
+
+.lang-option.active {
+  background: var(--color-primary);
+  color: white;
+}
+
 /* ============================================
    MAIN CONTENT HEADER
    ============================================ */

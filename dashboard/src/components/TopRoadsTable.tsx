@@ -1,11 +1,14 @@
 import type { TopRoad } from '../lib/types';
 import { useDashboard } from '../context/DashboardContext';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   data: TopRoad[];
 }
 
 export function TopRoadsTable({ data }: Props) {
+  const { t } = useTranslation();
+
   // Try to get filter context
   let addFilter: ((filter: { type: 'province' | 'severity' | 'cause' | 'road'; value: string; label: string }) => void) | undefined;
   
@@ -28,15 +31,15 @@ export function TopRoadsTable({ data }: Props) {
   return (
     <div className="card table-card">
       <div className="card-header">
-        <span className="card-title">Top Roads (Last 7 Days)</span>
+        <span className="card-title">{t('topRoads.title')}</span>
       </div>
       <div className="table-container">
         <table>
           <thead>
             <tr>
               <th scope="col" style={{ width: '60px' }}>#</th>
-              <th scope="col">Road</th>
-              <th scope="col" style={{ width: '100px', textAlign: 'right' }}>Incidents</th>
+              <th scope="col">{t('table.road')}</th>
+              <th scope="col" style={{ width: '100px', textAlign: 'right' }}>{t('table.incidents')}</th>
             </tr>
           </thead>
           <tbody>
@@ -58,7 +61,7 @@ export function TopRoadsTable({ data }: Props) {
                           fontWeight: 500,
                           textAlign: 'left',
                         }}
-                        title="Click to filter by this road"
+                        title={t('table.clickToFilterRoad')}
                       >
                         {road.road}
                       </button>
@@ -96,9 +99,9 @@ export function TopRoadsTable({ data }: Props) {
                 <td colSpan={3}>
                   <div className="empty-state">
                     <span className="empty-state-icon">🛣️</span>
-                    <div className="empty-state-title">No road data</div>
+                    <div className="empty-state-title">{t('empty.noRoadData')}</div>
                     <div className="empty-state-description">
-                      Road statistics will appear here
+                      {t('empty.roadStatsAppear')}
                     </div>
                   </div>
                 </td>

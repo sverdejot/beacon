@@ -1,0 +1,239 @@
+{
+  "nav": {
+    "main": "Main",
+    "analytics": "Analytics",
+    "data": "Data",
+    "overview": "Overview",
+    "liveMap": "Live Map",
+    "trends": "Trends",
+    "distribution": "Distribution",
+    "heatmap": "Heatmap",
+    "activeIncidents": "Active Incidents",
+    "topRoads": "Top Roads"
+  },
+  "sidebar": {
+    "trafficData": "Spanish Traffic Data",
+    "dgtApi": "DGT DATEX II API"
+  },
+  "connection": {
+    "live": "Live",
+    "connecting": "Connecting..."
+  },
+  "timeRange": {
+    "label": "Time range"
+  },
+  "filters": {
+    "filteringBy": "Filtering by:",
+    "clearAll": "Clear all",
+    "removeFilter": "Remove {{type}} filter: {{label}}"
+  },
+  "summary": {
+    "activeIncidents": "Active Incidents",
+    "currentlyOngoing": "Currently ongoing",
+    "severeIncidents": "Severe Incidents",
+    "highOrHighest": "High or highest severity",
+    "todaysTotal": "Today's Total",
+    "reportedToday": "Incidents reported today",
+    "peakHour": "Peak Hour",
+    "incidentsAtHour": "{{count}} incidents at this hour",
+    "clickToFilter": "Click to filter"
+  },
+  "impact": {
+    "totalAffected": "Total Affected",
+    "noData": "No data available",
+    "roadSegments": "Road segments (7 days)",
+    "topProvince": "Top Province",
+    "incidents7d": "{{count}} incidents (7 days)",
+    "topRoad": "Top Road",
+    "weatherImpact": "Weather Impact",
+    "weatherIncidents": "{{weather}} of {{total}} incidents"
+  },
+  "table": {
+    "time": "Time",
+    "province": "Province",
+    "road": "Road",
+    "severity": "Severity",
+    "cause": "Cause",
+    "duration": "Duration",
+    "incidents": "Incidents",
+    "count": "Count",
+    "subtype": "Subtype",
+    "rank": "#",
+    "affected": "Affected",
+    "commonCauses": "Common Causes",
+    "filterPlaceholder": "Filter by province, road, or cause...",
+    "filterLabel": "Filter incidents",
+    "clickToFilterProvince": "Click to filter by this province",
+    "clickToFilterCause": "Click to filter by this cause",
+    "clickToFilterRoad": "Click to filter by this road"
+  },
+  "activeIncidents": {
+    "title": "Active Incidents ({{count}})",
+    "severeClick": "{{count}} severe incidents. Click to filter."
+  },
+  "empty": {
+    "noIncidents": "No incidents found",
+    "adjustFilter": "Try adjusting your filter",
+    "noActiveIncidents": "No active incidents at this time",
+    "noRoadData": "No road data",
+    "roadStatsAppear": "Road statistics will appear here",
+    "noSubtypeData": "No subtype data",
+    "subtypeStatsAppear": "Subtype statistics will appear here",
+    "noRouteData": "No route data available",
+    "noHotspotData": "No hotspot data available",
+    "noDurationData": "No duration data available",
+    "noDirectionalData": "No directional data available",
+    "noRushHourData": "No rush hour data available",
+    "loadingMap": "Loading map..."
+  },
+  "error": {
+    "loadingDashboard": "Error loading dashboard data",
+    "loadingTrends": "Error loading trends data",
+    "loadingDistribution": "Error loading distribution data",
+    "loadingHeatmap": "Error loading heatmap data",
+    "loadingIncidents": "Error loading incidents data",
+    "loadingRoads": "Error loading roads data"
+  },
+  "section": {
+    "impactMetrics": "Impact Metrics",
+    "alertsAnomalies": "Alerts & Anomalies",
+    "liveMap": "Live Map",
+    "trends": "Trends",
+    "timeAnalysis": "Time Analysis",
+    "distribution": "Distribution",
+    "corridorAnalysis": "Corridor Analysis",
+    "recurringHotspots": "Recurring Hotspots"
+  },
+  "charts": {
+    "hourlyTrend": "Hourly Trend (Last 24h)",
+    "dailyTrend": "Daily Trend (Last 30 Days)",
+    "bySeverity": "By Severity (Last 7 Days)",
+    "byCauseType": "By Cause Type (Last 7 Days)",
+    "byProvince": "By Province (Top 10, Last 7 Days)",
+    "total": "Total",
+    "severe": "Severe",
+    "incidents": "Incidents",
+    "clickToFilter": "Click to filter",
+    "directionalFlow": "Directional Flow",
+    "directionSubtitle": "Incidents by traffic direction (last 7 days)",
+    "durationDistribution": "Duration Distribution",
+    "durationSubtitle": "Incident duration breakdown (last 7 days)",
+    "rushHourAnalysis": "Rush Hour Analysis",
+    "rushHourSubtitle": "Comparing peak vs off-peak incidents (last 7 days)",
+    "avgMin": "{{count}} min avg"
+  },
+  "severity": {
+    "highest": "Highest",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low",
+    "unknown": "Unknown",
+    "critical": "Critical"
+  },
+  "direction": {
+    "northbound": "Northbound",
+    "southbound": "Southbound",
+    "eastbound": "Eastbound",
+    "westbound": "Westbound",
+    "both": "Both Directions",
+    "unknown": "Unknown",
+    "inbound": "Inbound",
+    "outbound": "Outbound"
+  },
+  "rushHour": {
+    "morningRush": "Morning Rush",
+    "eveningRush": "Evening Rush",
+    "offPeak": "Off-Peak"
+  },
+  "duration": {
+    "0-15": "0-15 min",
+    "15-30": "15-30 min",
+    "30-60": "30-60 min",
+    "60-120": "1-2 hours",
+    "120-240": "2-4 hours",
+    "240+": "4+ hours"
+  },
+  "topRoads": {
+    "title": "Top Roads (Last 7 Days)",
+    "subtypes": "Top Cause Subtypes (Last 7 Days)"
+  },
+  "routeAnalysis": {
+    "title": "Route Analysis",
+    "subtitle": "Top corridors by incident count (last 7 days)"
+  },
+  "anomalies": {
+    "title": "Anomaly Detection",
+    "allNormal": "All Normal",
+    "noPatterns": "No unusual patterns detected today",
+    "patternsNormal": "Traffic patterns are within expected ranges",
+    "alert": "Alert",
+    "anomalies": "Anomalies",
+    "patternsDetected": "{{count}} unusual pattern detected (vs 7-day baseline)",
+    "patternsDetected_plural": "{{count}} unusual patterns detected (vs 7-day baseline)",
+    "high": "{{count}} high",
+    "medium": "{{count}} medium",
+    "low": "{{count}} low",
+    "today": "{{count}} today",
+    "avg": "{{value}} avg",
+    "moreAnomalies": "+{{count}} more anomalies"
+  },
+  "hotspots": {
+    "title": "Recurring Hotspots",
+    "subtitle": "Locations with repeated incidents (last 30 days) - {{count}} hotspots detected",
+    "popupTitle": "Recurring Hotspot",
+    "incidents": "incidents",
+    "daysWithIncidents": "days with incidents",
+    "topCause": "Top cause",
+    "avgSeverity": "Avg severity",
+    "lowSeverity": "Low severity",
+    "medium": "Medium",
+    "high": "High",
+    "critical": "Critical"
+  },
+  "pages": {
+    "overview": "Overview",
+    "liveMap": "Live Map",
+    "trends": "Trends",
+    "distribution": "Distribution",
+    "heatmap": "Heatmap",
+    "activeIncidents": "Active Incidents",
+    "topRoads": "Top Roads"
+  },
+  "trendsPage": {
+    "hourlyTrends": "Hourly Trends",
+    "dailyTrends": "Daily Trends",
+    "understandingTitle": "Understanding the Data",
+    "hourlyDesc": "<strong>Hourly Trend</strong> shows incident frequency over the last 24 hours, helping identify peak activity periods and rush hour patterns.",
+    "dailyDesc": "<strong>Daily Trend</strong> displays the 7-day rolling pattern, useful for spotting weekly cycles and comparing weekday vs weekend traffic incidents."
+  },
+  "distributionPage": {
+    "bySeverity": "By Severity",
+    "byProvince": "By Province",
+    "byCauseType": "By Cause Type",
+    "insightsTitle": "Distribution Insights",
+    "severityLevels": "Severity Levels",
+    "severityDesc": "Incidents are classified from Low to Highest based on their impact on traffic flow and safety.",
+    "causeTypes": "Cause Types",
+    "causeDesc": "12 main categories including accidents, roadworks, weather conditions, and traffic congestion.",
+    "geoSpread": "Geographic Spread",
+    "geoDesc": "Data covers all Spanish provinces with real-time updates from DGT."
+  },
+  "heatmapPage": {
+    "aboutTitle": "About the Heatmap",
+    "aboutDesc1": "This heatmap visualizes incident density across Spain over the last 7 days. Warmer colors (red, orange) indicate areas with higher incident frequency, while cooler colors (blue) show areas with fewer incidents.",
+    "aboutDesc2": "Use this view to identify recurring problem areas and traffic hotspots that may require infrastructure improvements or increased monitoring."
+  },
+  "incidentsPage": {
+    "description": "Real-time list of all currently active traffic incidents across Spain. Click column headers to sort, use the filter to search."
+  },
+  "roadsPage": {
+    "description": "Statistics on the most affected roads and common incident subtypes over the last 7 days.",
+    "analysisTitle": "Road Analysis",
+    "analysisDesc1": "The top roads list shows which highways and routes experience the most incidents. This data can help identify corridors that may benefit from additional traffic management resources or infrastructure improvements.",
+    "analysisDesc2": "The subtypes breakdown reveals the specific causes behind incidents, from vehicle breakdowns to weather-related issues, enabling targeted prevention strategies."
+  },
+  "lang": {
+    "toggle": "Espanol",
+    "current": "EN"
+  }
+}

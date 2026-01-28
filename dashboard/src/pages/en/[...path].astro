@@ -1,0 +1,35 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { OverviewPage } from '../../components/pages/OverviewPage';
+import { MapPage } from '../../components/pages/MapPage';
+import { TrendsPage } from '../../components/pages/TrendsPage';
+import { DistributionPage } from '../../components/pages/DistributionPage';
+import { HeatmapPage } from '../../components/pages/HeatmapPage';
+import { IncidentsPage } from '../../components/pages/IncidentsPage';
+import { RoadsPage } from '../../components/pages/RoadsPage';
+
+export function getStaticPaths() {
+  return [
+    { params: { path: undefined }, props: { page: 'overview', title: 'Beacon - Traffic Analytics Dashboard' } },
+    { params: { path: 'map' }, props: { page: 'map', title: 'Live Map - Beacon' } },
+    { params: { path: 'trends' }, props: { page: 'trends', title: 'Trends - Beacon' } },
+    { params: { path: 'distribution' }, props: { page: 'distribution', title: 'Distribution - Beacon' } },
+    { params: { path: 'heatmap' }, props: { page: 'heatmap', title: 'Heatmap - Beacon' } },
+    { params: { path: 'incidents' }, props: { page: 'incidents', title: 'Active Incidents - Beacon' } },
+    { params: { path: 'roads' }, props: { page: 'roads', title: 'Top Roads - Beacon' } },
+  ];
+}
+
+const { page, title } = Astro.props;
+const currentPath = Astro.url.pathname;
+---
+
+<Layout title={title} lang="en">
+  {page === 'overview' && <OverviewPage client:load currentPath={currentPath} lang="en" />}
+  {page === 'map' && <MapPage client:load currentPath={currentPath} lang="en" />}
+  {page === 'trends' && <TrendsPage client:load currentPath={currentPath} lang="en" />}
+  {page === 'distribution' && <DistributionPage client:load currentPath={currentPath} lang="en" />}
+  {page === 'heatmap' && <HeatmapPage client:load currentPath={currentPath} lang="en" />}
+  {page === 'incidents' && <IncidentsPage client:load currentPath={currentPath} lang="en" />}
+  {page === 'roads' && <RoadsPage client:load currentPath={currentPath} lang="en" />}
+</Layout>

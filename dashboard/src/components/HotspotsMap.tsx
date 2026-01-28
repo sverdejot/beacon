@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Hotspot } from '../lib/types';
 
 interface Props {
@@ -13,6 +14,7 @@ function getSeverityColor(severity: number): string {
 }
 
 export function HotspotsMap({ data }: Props) {
+  const { t } = useTranslation();
   const mapRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isClient, setIsClient] = useState(false);
@@ -73,12 +75,12 @@ export function HotspotsMap({ data }: Props) {
 
           marker.bindPopup(`
             <div class="hotspot-popup">
-              <div class="hotspot-popup-title">Recurring Hotspot</div>
+              <div class="hotspot-popup-title">${t('hotspots.popupTitle')}</div>
               <div class="hotspot-popup-stats">
-                <div><strong>${hotspot.incident_count}</strong> incidents</div>
-                <div><strong>${hotspot.recurrence}</strong> days with incidents</div>
-                <div>Top cause: <strong>${hotspot.top_cause.replace(/_/g, ' ')}</strong></div>
-                <div>Avg severity: <strong>${hotspot.avg_severity.toFixed(1)}/5</strong></div>
+                <div><strong>${hotspot.incident_count}</strong> ${t('hotspots.incidents')}</div>
+                <div><strong>${hotspot.recurrence}</strong> ${t('hotspots.daysWithIncidents')}</div>
+                <div>${t('hotspots.topCause')}: <strong>${hotspot.top_cause.replace(/_/g, ' ')}</strong></div>
+                <div>${t('hotspots.avgSeverity')}: <strong>${hotspot.avg_severity.toFixed(1)}/5</strong></div>
               </div>
             </div>
           `);
@@ -106,12 +108,12 @@ export function HotspotsMap({ data }: Props) {
   if (!isClient) {
     return (
       <div className="card">
-        <h3 className="card-title">Recurring Hotspots</h3>
-        <div 
+        <h3 className="card-title">{t('hotspots.title')}</h3>
+        <div
           className="hotspots-map-container"
           style={{ height: '400px', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg)' }}
         >
-          <span style={{ color: 'var(--color-text-muted)' }}>Loading map...</span>
+          <span style={{ color: 'var(--color-text-muted)' }}>{t('empty.loadingMap')}</span>
         </div>
       </div>
     );
@@ -120,17 +122,17 @@ export function HotspotsMap({ data }: Props) {
   if (data.length === 0) {
     return (
       <div className="card">
-        <h3 className="card-title">Recurring Hotspots</h3>
-        <div className="map-empty">No hotspot data available</div>
+        <h3 className="card-title">{t('hotspots.title')}</h3>
+        <div className="map-empty">{t('empty.noHotspotData')}</div>
       </div>
     );
   }
 
   return (
     <div className="card">
-      <h3 className="card-title">Recurring Hotspots</h3>
+      <h3 className="card-title">{t('hotspots.title')}</h3>
       <p className="card-subtitle">
-        Locations with repeated incidents (last 30 days) - {data.length} hotspots detected
+        {t('hotspots.subtitle', { count: data.length })}
       </p>
       <div 
         ref={containerRef} 
@@ -140,19 +142,19 @@ export function HotspotsMap({ data }: Props) {
       <div className="hotspots-legend">
         <span className="legend-item">
           <span className="legend-dot" style={{ background: '#22c55e' }}></span>
-          Low severity
+          {t('hotspots.lowSeverity')}
         </span>
         <span className="legend-item">
           <span className="legend-dot" style={{ background: '#eab308' }}></span>
-          Medium
+          {t('hotspots.medium')}
         </span>
         <span className="legend-item">
           <span className="legend-dot" style={{ background: '#f97316' }}></span>
-          High
+          {t('hotspots.high')}
         </span>
         <span className="legend-item">
           <span className="legend-dot" style={{ background: '#ef4444' }}></span>
-          Critical
+          {t('hotspots.critical')}
         </span>
       </div>
     </div>

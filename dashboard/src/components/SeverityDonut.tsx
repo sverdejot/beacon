@@ -1,5 +1,6 @@
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Doughnut } from 'react-chartjs-2';
+import { useTranslation } from 'react-i18next';
 import type { DistributionItem } from '../lib/types';
 import { useDashboard } from '../context/DashboardContext';
 
@@ -17,15 +18,10 @@ const severityColors: Record<string, string> = {
   unknown: '#6b7280',
 };
 
-const severityLabels: Record<string, string> = {
-  highest: 'Highest',
-  high: 'High',
-  medium: 'Medium',
-  low: 'Low',
-  unknown: 'Unknown',
-};
+const severityKeys = ['highest', 'high', 'medium', 'low', 'unknown'] as const;
 
 export function SeverityDonut({ data }: Props) {
+  const { t } = useTranslation();
   // Try to get filter context
   let addFilter: ((filter: { type: 'province' | 'severity' | 'cause' | 'road'; value: string; label: string }) => void) | undefined;
   
@@ -37,7 +33,7 @@ export function SeverityDonut({ data }: Props) {
   }
 
   const chartData = {
-    labels: data.map((d) => severityLabels[d.label] || d.label),
+    labels: data.map((d) => t(`severity.${d.label}`)),
     datasets: [
       {
         data: data.map((d) => d.count),
@@ -62,7 +58,7 @@ export function SeverityDonut({ data }: Props) {
         addFilter({
           type: 'severity',
           value: item.label,
-          label: severityLabels[item.label] || item.label,
+          label: t(`severity.${item.label}`),
         });
       }
     },
@@ -84,7 +80,7 @@ export function SeverityDonut({ data }: Props) {
         borderColor: '#334155',
         borderWidth: 1,
         callbacks: {
-          afterBody: () => addFilter ? ['', 'Click to filter'] : [],
+          afterBody: () => addFilter ? ['', t('charts.clickToFilter')] : [],
         },
       },
     },
@@ -104,7 +100,7 @@ export function SeverityDonut({ data }: Props) {
   return (
     <div className="card chart-card">
       <div className="card-header">
-        <span className="card-title">By Severity (Last 7 Days)</span>
+        <span className="card-title">{t('charts.bySeverity')}</span>
       </div>
       <div className="chart-container" style={{ position: 'relative' }}>
         <Doughnut data={chartData} options={options} />
@@ -124,7 +120,7 @@ export function SeverityDonut({ data }: Props) {
             {total.toLocaleString()}
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-            Total
+            {t('charts.total')}
           </div>
         </div>
       </div>

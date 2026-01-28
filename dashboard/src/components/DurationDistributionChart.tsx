@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Chart, registerables } from 'chart.js';
 import type { DurationBucket } from '../lib/types';
 
@@ -18,8 +19,18 @@ const BUCKET_LABELS: Record<string, string> = {
 };
 
 export function DurationDistributionChart({ data }: Props) {
+  const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | null>(null);
+
+  const bucketLabels: Record<string, string> = {
+    '0-15': t('duration.0-15'),
+    '15-30': t('duration.15-30'),
+    '30-60': t('duration.30-60'),
+    '60-120': t('duration.60-120'),
+    '120-240': t('duration.120-240'),
+    '240+': t('duration.240+'),
+  };
 
   useEffect(() => {
     if (!canvasRef.current || data.length === 0) return;
@@ -34,10 +45,10 @@ export function DurationDistributionChart({ data }: Props) {
     chartRef.current = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: data.map((d) => BUCKET_LABELS[d.bucket] || d.bucket),
+        labels: data.map((d) => bucketLabels[d.bucket] || d.bucket),
         datasets: [
           {
-            label: 'Incidents',
+            label: t('charts.incidents'),
             data: data.map((d) => d.count),
             backgroundColor: 'rgba(99, 102, 241, 0.8)',
             borderColor: 'rgba(99, 102, 241, 1)',
@@ -97,16 +108,16 @@ export function DurationDistributionChart({ data }: Props) {
   if (data.length === 0) {
     return (
       <div className="card">
-        <h3 className="card-title">Duration Distribution</h3>
-        <div className="chart-empty">No duration data available</div>
+        <h3 className="card-title">{t('charts.durationDistribution')}</h3>
+        <div className="chart-empty">{t('empty.noDurationData')}</div>
       </div>
     );
   }
 
   return (
     <div className="card">
-      <h3 className="card-title">Duration Distribution</h3>
-      <p className="card-subtitle">Incident duration breakdown (last 7 days)</p>
+      <h3 className="card-title">{t('charts.durationDistribution')}</h3>
+      <p className="card-subtitle">{t('charts.durationSubtitle')}</p>
       <div className="chart-container" style={{ height: '250px' }}>
         <canvas ref={canvasRef} />
       </div>

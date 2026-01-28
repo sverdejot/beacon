@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 interface TimeRangeOption {
   label: string;
   value: string;
@@ -16,8 +18,10 @@ interface TimeRangeSelectorProps {
 }
 
 export function TimeRangeSelector({ value, onChange }: TimeRangeSelectorProps) {
+  const { t } = useTranslation();
+
   return (
-    <div className="time-range-selector" role="group" aria-label="Time range">
+    <div className="time-range-selector" role="group" aria-label={t('timeRange.label')}>
       {options.map((option) => (
         <button
           key={option.value}

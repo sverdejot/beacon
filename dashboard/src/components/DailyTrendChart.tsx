@@ -8,6 +8,7 @@ import {
   Legend,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
+import { useTranslation } from 'react-i18next';
 import type { DailyDataPoint } from '../lib/types';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export function DailyTrendChart({ data }: Props) {
+  const { t } = useTranslation();
   const labels = data.map((d) => {
     const date = new Date(d.date);
     return date.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
@@ -26,13 +28,13 @@ export function DailyTrendChart({ data }: Props) {
     labels,
     datasets: [
       {
-        label: 'Total',
+        label: t('charts.total'),
         data: data.map((d) => d.count),
         backgroundColor: 'rgba(59, 130, 246, 0.8)',
         borderRadius: 4,
       },
       {
-        label: 'Severe',
+        label: t('charts.severe'),
         data: data.map((d) => d.severe_count),
         backgroundColor: 'rgba(239, 68, 68, 0.8)',
         borderRadius: 4,
@@ -84,7 +86,7 @@ export function DailyTrendChart({ data }: Props) {
 
   return (
     <div className="card chart-card">
-      <div className="card-title">Daily Trend (Last 30 Days)</div>
+      <div className="card-title">{t('charts.dailyTrend')}</div>
       <div className="chart-container">
         <Bar data={chartData} options={options} />
       </div>

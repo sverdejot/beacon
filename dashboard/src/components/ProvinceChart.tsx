@@ -8,6 +8,7 @@ import {
   Legend,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
+import { useTranslation } from 'react-i18next';
 import type { DistributionItem } from '../lib/types';
 import { useDashboard } from '../context/DashboardContext';
 
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function ProvinceChart({ data }: Props) {
+  const { t } = useTranslation();
   // Try to get filter context
   let addFilter: ((filter: { type: 'province' | 'severity' | 'cause' | 'road'; value: string; label: string }) => void) | undefined;
   let hasFilter: ((type: 'province' | 'severity' | 'cause' | 'road', value: string) => boolean) | undefined;
@@ -37,7 +39,7 @@ export function ProvinceChart({ data }: Props) {
     labels: topData.map((d) => d.label),
     datasets: [
       {
-        label: 'Incidents',
+        label: t('charts.incidents'),
         data: topData.map((d) => d.count),
         backgroundColor: topData.map((d) =>
           hasFilter && hasFilter('province', d.label)
@@ -76,7 +78,7 @@ export function ProvinceChart({ data }: Props) {
         borderColor: '#334155',
         borderWidth: 1,
         callbacks: {
-          afterBody: () => addFilter ? ['', 'Click to filter'] : [],
+          afterBody: () => addFilter ? ['', t('charts.clickToFilter')] : [],
         },
       },
     },
@@ -112,7 +114,7 @@ export function ProvinceChart({ data }: Props) {
   return (
     <div className="card chart-card">
       <div className="card-header">
-        <span className="card-title">By Province (Top 10, Last 7 Days)</span>
+        <span className="card-title">{t('charts.byProvince')}</span>
       </div>
       <div className="chart-container">
         <Bar data={chartData} options={options} />

@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+import { initI18n, type SupportedLang } from '../../i18n';
 import { AppLayout } from '../AppLayout';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { TopRoadsTable } from '../TopRoadsTable';
@@ -6,17 +8,21 @@ import { SkeletonTable } from '../Skeleton';
 
 interface RoadsPageProps {
   currentPath: string;
+  lang?: string;
 }
 
-export function RoadsPage({ currentPath }: RoadsPageProps) {
+export function RoadsPage({ currentPath, lang }: RoadsPageProps) {
+  initI18n(lang as SupportedLang);
+  const { t } = useTranslation();
   return (
-    <AppLayout title="Top Roads" currentPath={currentPath}>
+    <AppLayout title={t('pages.topRoads')} currentPath={currentPath} lang={lang as SupportedLang}>
       <RoadsContent />
     </AppLayout>
   );
 }
 
 function RoadsContent() {
+  const { t } = useTranslation();
   const data = useDashboardData();
 
   if (data.loading) {
@@ -31,8 +37,8 @@ function RoadsContent() {
   if (data.error) {
     return (
       <div className="error">
-        <span className="error-icon">⚠️</span>
-        <div>Error loading roads data</div>
+        <span className="error-icon">&#x26A0;&#xFE0F;</span>
+        <div>{t('error.loadingRoads')}</div>
         <div style={{ fontSize: '0.875rem', opacity: 0.8 }}>{data.error}</div>
       </div>
     );
@@ -42,7 +48,7 @@ function RoadsContent() {
     <>
       <div style={{ marginBottom: '1rem' }}>
         <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
-          Statistics on the most affected roads and common incident subtypes over the last 7 days.
+          {t('roadsPage.description')}
         </p>
       </div>
 
@@ -52,15 +58,12 @@ function RoadsContent() {
       </div>
 
       <div className="card" style={{ marginTop: '1.5rem', padding: '1.5rem' }}>
-        <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>Road Analysis</h3>
+        <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>{t('roadsPage.analysisTitle')}</h3>
         <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', lineHeight: 1.6 }}>
-          The top roads list shows which highways and routes experience the most incidents. 
-          This data can help identify corridors that may benefit from additional traffic 
-          management resources or infrastructure improvements.
+          {t('roadsPage.analysisDesc1')}
         </p>
         <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', lineHeight: 1.6, marginTop: '0.5rem' }}>
-          The subtypes breakdown reveals the specific causes behind incidents, from vehicle 
-          breakdowns to weather-related issues, enabling targeted prevention strategies.
+          {t('roadsPage.analysisDesc2')}
         </p>
       </div>
     </>

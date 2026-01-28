@@ -10,6 +10,7 @@ import {
   Filler,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
+import { useTranslation } from 'react-i18next';
 import type { HourlyDataPoint } from '../lib/types';
 
 ChartJS.register(
@@ -28,6 +29,7 @@ interface Props {
 }
 
 export function HourlyTrendChart({ data }: Props) {
+  const { t } = useTranslation();
   const labels = data.map((d) => {
     const date = new Date(d.hour);
     return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
@@ -37,7 +39,7 @@ export function HourlyTrendChart({ data }: Props) {
     labels,
     datasets: [
       {
-        label: 'Incidents',
+        label: t('charts.incidents'),
         data: data.map((d) => d.count),
         borderColor: '#3b82f6',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -89,7 +91,7 @@ export function HourlyTrendChart({ data }: Props) {
 
   return (
     <div className="card chart-card">
-      <div className="card-title">Hourly Trend (Last 24h)</div>
+      <div className="card-title">{t('charts.hourlyTrend')}</div>
       <div className="chart-container">
         <Line data={chartData} options={options} />
       </div>

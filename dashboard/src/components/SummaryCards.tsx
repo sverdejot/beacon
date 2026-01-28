@@ -1,5 +1,6 @@
 import type { Summary } from '../lib/types';
 import { useDashboard } from '../context/DashboardContext';
+import { useTranslation } from 'react-i18next';
 
 interface Props {
   summary: Summary | null;
@@ -74,6 +75,7 @@ function generateMockSparkline(baseValue: number): SparklineData {
 }
 
 export function SummaryCards({ summary, previousSummary }: Props) {
+  const { t } = useTranslation();
   let addFilter: ((filter: { type: 'province' | 'severity' | 'cause' | 'road'; value: string; label: string }) => void) | undefined;
   try {
     const context = useDashboard();
@@ -121,8 +123,8 @@ export function SummaryCards({ summary, previousSummary }: Props) {
           <TrendBadge trend={activeTrend} invertColor />
         </div>
         <div className="card-value">{summary.active_incidents.toLocaleString()}</div>
-        <div className="card-title">Active Incidents</div>
-        <div className="card-subtitle">Currently ongoing</div>
+        <div className="card-title">{t('summary.activeIncidents')}</div>
+        <div className="card-subtitle">{t('summary.currentlyOngoing')}</div>
         <div className="sparkline-container">
           <Sparkline data={generateMockSparkline(summary.active_incidents)} />
         </div>
@@ -133,7 +135,7 @@ export function SummaryCards({ summary, previousSummary }: Props) {
         className="card summary-card severe"
         onClick={handleSevereClick}
         style={{ cursor: addFilter ? 'pointer' : 'default', textAlign: 'left' }}
-        aria-label={`${summary.severe_incidents} severe incidents. Click to filter.`}
+        aria-label={t('activeIncidents.severeClick', { count: summary.severe_incidents })}
       >
         <div className="summary-card-header">
           <div className="summary-card-icon" aria-hidden="true">
@@ -142,8 +144,8 @@ export function SummaryCards({ summary, previousSummary }: Props) {
           <TrendBadge trend={severeTrend} invertColor />
         </div>
         <div className="card-value">{summary.severe_incidents.toLocaleString()}</div>
-        <div className="card-title">Severe Incidents</div>
-        <div className="card-subtitle">High or highest severity</div>
+        <div className="card-title">{t('summary.severeIncidents')}</div>
+        <div className="card-subtitle">{t('summary.highOrHighest')}</div>
         <div className="sparkline-container">
           <Sparkline data={generateMockSparkline(summary.severe_incidents)} />
         </div>
@@ -158,8 +160,8 @@ export function SummaryCards({ summary, previousSummary }: Props) {
           <TrendBadge trend={todayTrend} invertColor />
         </div>
         <div className="card-value">{summary.todays_total.toLocaleString()}</div>
-        <div className="card-title">Today's Total</div>
-        <div className="card-subtitle">Incidents reported today</div>
+        <div className="card-title">{t('summary.todaysTotal')}</div>
+        <div className="card-subtitle">{t('summary.reportedToday')}</div>
         <div className="sparkline-container">
           <Sparkline data={generateMockSparkline(summary.todays_total)} />
         </div>
@@ -173,8 +175,8 @@ export function SummaryCards({ summary, previousSummary }: Props) {
           </div>
         </div>
         <div className="card-value">{formatHour(summary.peak_hour)}</div>
-        <div className="card-title">Peak Hour</div>
-        <div className="card-subtitle">{summary.peak_hour_count} incidents at this hour</div>
+        <div className="card-title">{t('summary.peakHour')}</div>
+        <div className="card-subtitle">{t('summary.incidentsAtHour', { count: summary.peak_hour_count })}</div>
         <div className="sparkline-container">
           <Sparkline data={generateMockSparkline(summary.peak_hour_count || 10)} />
         </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface NavItem {
   id: string;
@@ -12,36 +13,39 @@ interface NavSection {
   items: NavItem[];
 }
 
-const navigation: NavSection[] = [
-  {
-    title: 'Main',
-    items: [
-      { id: 'overview', label: 'Overview', icon: '📊', href: '/dashboard/' },
-      { id: 'map', label: 'Live Map', icon: '🗺️', href: '/dashboard/map' },
-    ],
-  },
-  {
-    title: 'Analytics',
-    items: [
-      { id: 'trends', label: 'Trends', icon: '📈', href: '/dashboard/trends' },
-      { id: 'distribution', label: 'Distribution', icon: '📉', href: '/dashboard/distribution' },
-      { id: 'heatmap', label: 'Heatmap', icon: '🔥', href: '/dashboard/heatmap' },
-    ],
-  },
-  {
-    title: 'Data',
-    items: [
-      { id: 'incidents', label: 'Active Incidents', icon: '🚨', href: '/dashboard/incidents' },
-      { id: 'roads', label: 'Top Roads', icon: '🛣️', href: '/dashboard/roads' },
-    ],
-  },
-];
+function getNavigation(t: (key: string) => string): NavSection[] {
+  return [
+    {
+      title: t('nav.main'),
+      items: [
+        { id: 'overview', label: t('nav.overview'), icon: '📊', href: '/dashboard/' },
+        { id: 'map', label: t('nav.liveMap'), icon: '🗺️', href: '/dashboard/map' },
+      ],
+    },
+    {
+      title: t('nav.analytics'),
+      items: [
+        { id: 'trends', label: t('nav.trends'), icon: '📈', href: '/dashboard/trends' },
+        { id: 'distribution', label: t('nav.distribution'), icon: '📉', href: '/dashboard/distribution' },
+        { id: 'heatmap', label: t('nav.heatmap'), icon: '🔥', href: '/dashboard/heatmap' },
+      ],
+    },
+    {
+      title: t('nav.data'),
+      items: [
+        { id: 'incidents', label: t('nav.activeIncidents'), icon: '🚨', href: '/dashboard/incidents' },
+        { id: 'roads', label: t('nav.topRoads'), icon: '🛣️', href: '/dashboard/roads' },
+      ],
+    },
+  ];
+}
 
 interface SidebarProps {
   currentPath?: string;
 }
 
 export function Sidebar({ currentPath = '/dashboard/' }: SidebarProps) {
+  const { t } = useTranslation();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -128,7 +132,7 @@ export function Sidebar({ currentPath = '/dashboard/' }: SidebarProps) {
 
         {/* Navigation */}
         <nav className="sidebar-nav">
-          {navigation.map((section) => (
+          {getNavigation(t).map((section) => (
             <div key={section.title} className="sidebar-section">
               <div className="sidebar-section-title">
                 {collapsed ? '•••' : section.title}
@@ -154,8 +158,8 @@ export function Sidebar({ currentPath = '/dashboard/' }: SidebarProps) {
         <div className="sidebar-footer">
           {!collapsed && (
             <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
-              <div style={{ marginBottom: '0.25rem' }}>Spanish Traffic Data</div>
-              <div style={{ opacity: 0.7 }}>DGT DATEX II API</div>
+              <div style={{ marginBottom: '0.25rem' }}>{t('sidebar.trafficData')}</div>
+              <div style={{ opacity: 0.7 }}>{t('sidebar.dgtApi')}</div>
             </div>
           )}
         </div>

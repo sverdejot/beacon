@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Chart, registerables } from 'chart.js';
 import type { DirectionStats } from '../lib/types';
 
@@ -31,8 +32,20 @@ const DIRECTION_COLORS: Record<string, string> = {
 };
 
 export function DirectionalFlowChart({ data }: Props) {
+  const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | null>(null);
+
+  const directionLabels: Record<string, string> = {
+    northbound: t('direction.northbound'),
+    southbound: t('direction.southbound'),
+    eastbound: t('direction.eastbound'),
+    westbound: t('direction.westbound'),
+    both: t('direction.both'),
+    unknown: t('direction.unknown'),
+    inbound: t('direction.inbound'),
+    outbound: t('direction.outbound'),
+  };
 
   useEffect(() => {
     if (!canvasRef.current || data.length === 0) return;
@@ -44,7 +57,7 @@ export function DirectionalFlowChart({ data }: Props) {
     const ctx = canvasRef.current.getContext('2d');
     if (!ctx) return;
 
-    const labels = data.map((d) => DIRECTION_LABELS[d.direction.toLowerCase()] || d.direction);
+    const labels = data.map((d) => directionLabels[d.direction.toLowerCase()] || d.direction);
     const colors = data.map((d) => DIRECTION_COLORS[d.direction.toLowerCase()] || 'rgba(107, 114, 128, 0.8)');
 
     chartRef.current = new Chart(ctx, {
@@ -95,16 +108,16 @@ export function DirectionalFlowChart({ data }: Props) {
   if (data.length === 0) {
     return (
       <div className="card">
-        <h3 className="card-title">Directional Flow</h3>
-        <div className="chart-empty">No directional data available</div>
+        <h3 className="card-title">{t('charts.directionalFlow')}</h3>
+        <div className="chart-empty">{t('empty.noDirectionalData')}</div>
       </div>
     );
   }
 
   return (
     <div className="card">
-      <h3 className="card-title">Directional Flow</h3>
-      <p className="card-subtitle">Incidents by traffic direction (last 7 days)</p>
+      <h3 className="card-title">{t('charts.directionalFlow')}</h3>
+      <p className="card-subtitle">{t('charts.directionSubtitle')}</p>
       <div className="chart-container" style={{ height: '250px' }}>
         <canvas ref={canvasRef} />
       </div>

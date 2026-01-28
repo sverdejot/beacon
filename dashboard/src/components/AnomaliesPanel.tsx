@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import type { Anomaly } from '../lib/types';
 
 interface Props {
@@ -48,19 +49,21 @@ function formatValue(dimension: string, value: string): string {
 }
 
 export function AnomaliesPanel({ data }: Props) {
+  const { t } = useTranslation();
+
   if (data.length === 0) {
     return (
       <div className="card anomalies-panel">
         <div className="anomalies-header">
-          <h3 className="card-title">Anomaly Detection</h3>
+          <h3 className="card-title">{t('anomalies.title')}</h3>
           <span className="anomalies-status normal">
-            ✓ All Normal
+            {`✓ ${t('anomalies.allNormal')}`}
           </span>
         </div>
-        <p className="card-subtitle">No unusual patterns detected today</p>
+        <p className="card-subtitle">{t('anomalies.noPatterns')}</p>
         <div className="anomalies-empty">
           <span className="anomalies-empty-icon">✨</span>
-          <span>Traffic patterns are within expected ranges</span>
+          <span>{t('anomalies.patternsNormal')}</span>
         </div>
       </div>
     );
@@ -73,31 +76,31 @@ export function AnomaliesPanel({ data }: Props) {
   return (
     <div className="card anomalies-panel">
       <div className="anomalies-header">
-        <h3 className="card-title">Anomaly Detection</h3>
+        <h3 className="card-title">{t('anomalies.title')}</h3>
         <span className={`anomalies-status ${highSeverity.length > 0 ? 'alert' : 'warning'}`}>
-          {highSeverity.length > 0 ? '⚠️ Alert' : '⚡ Anomalies'}
+          {highSeverity.length > 0 ? `⚠️ ${t('anomalies.alert')}` : `⚡ ${t('anomalies.anomalies')}`}
         </span>
       </div>
       <p className="card-subtitle">
-        {data.length} unusual pattern{data.length !== 1 ? 's' : ''} detected (vs 7-day baseline)
+        {t('anomalies.patternsDetected', { count: data.length })}
       </p>
 
       <div className="anomalies-summary">
         {highSeverity.length > 0 && (
-          <span className="anomaly-count high">{highSeverity.length} high</span>
+          <span className="anomaly-count high">{t('anomalies.high', { count: highSeverity.length })}</span>
         )}
         {mediumSeverity.length > 0 && (
-          <span className="anomaly-count medium">{mediumSeverity.length} medium</span>
+          <span className="anomaly-count medium">{t('anomalies.medium', { count: mediumSeverity.length })}</span>
         )}
         {lowSeverity.length > 0 && (
-          <span className="anomaly-count low">{lowSeverity.length} low</span>
+          <span className="anomaly-count low">{t('anomalies.low', { count: lowSeverity.length })}</span>
         )}
       </div>
 
       <div className="anomalies-list">
         {data.slice(0, 8).map((anomaly, index) => (
-          <div 
-            key={`${anomaly.dimension}-${anomaly.value}-${index}`} 
+          <div
+            key={`${anomaly.dimension}-${anomaly.value}-${index}`}
             className={`anomaly-item ${getSeverityClass(anomaly.severity)}`}
           >
             <div className="anomaly-icon">
@@ -109,9 +112,9 @@ export function AnomaliesPanel({ data }: Props) {
                 <span className="anomaly-value">{formatValue(anomaly.dimension, anomaly.value)}</span>
               </div>
               <div className="anomaly-stats">
-                <span className="anomaly-current">{anomaly.current_count} today</span>
+                <span className="anomaly-current">{t('anomalies.today', { count: anomaly.current_count })}</span>
                 <span className="anomaly-vs">vs</span>
-                <span className="anomaly-baseline">{anomaly.baseline_count.toFixed(1)} avg</span>
+                <span className="anomaly-baseline">{t('anomalies.avg', { value: anomaly.baseline_count.toFixed(1) })}</span>
               </div>
             </div>
             <div className={`anomaly-deviation ${anomaly.deviation > 0 ? 'up' : 'down'}`}>
@@ -123,7 +126,7 @@ export function AnomaliesPanel({ data }: Props) {
 
       {data.length > 8 && (
         <div className="anomalies-more">
-          +{data.length - 8} more anomalies
+          {t('anomalies.moreAnomalies', { count: data.length - 8 })}
         </div>
       )}
     </div>
