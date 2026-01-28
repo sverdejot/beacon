@@ -1,0 +1,49 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingester
+  namespace: beacon
+  labels:
+    app: ingester
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ingester
+  template:
+    metadata:
+      labels:
+        app: ingester
+    spec:
+      containers:
+        - name: ingester
+          image: ghcr.io/sverdejot/beacon/ingester:latest
+          env:
+            - name: MQTT_BROKER
+              value: tcp://broker:1883
+            - name: CLICKHOUSE_ADDR
+              value: clickhouse:9000
+            - name: CLICKHOUSE_DATABASE
+              value: beacon
+            - name: CLICKHOUSE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: clickhouse-credentials
+                  key: username
+            - name: CLICKHOUSE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: clickhouse-credentials
+                  key: password
+            - name: OSRM_URL
+              value: http://osrm:5000
+            - name: REDIS_ADDR
+              value: valkey:6379
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"

@@ -1,0 +1,77 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: osrm
+  namespace: beacon
+  labels:
+    app: osrm
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: osrm
+  template:
+    metadata:
+      labels:
+        app: osrm
+    spec:
+      initContainers:
+        - name: data-loader
+          image: curlimages/curl
+          command:
+            - sh
+            - -c
+            - |
+              if [ -f /data/spain-latest.osrm ]; then
+                echo "OSRM data already exists, skipping download"
+                exit 0
+              fi
+              echo "Downloading ESP OSRM data"
+              curl -L -o /data/spain-latest.osrm.tar.gz \
+                "https://github.com/sverdejot/beacon/releases/download/osrm-v1/spain-latest.osrm.tar.gz"
+              tar -xzf /data/spain-latest.osrm.tar.gz -C /data
+              rm /data/spain-latest.osrm.tar.gz
+              echo "OSRM data ready"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      containers:
+        - name: osrm
+          image: osrm/osrm-backend
+          command:
+            - osrm-routed
+            - --algorithm
+            - mld
+            - /data/spain-latest.osrm
+          ports:
+            - name: http
+              containerPort: 5000
+              protocol: TCP
+          volumeMounts:
+            - name: data
+              mountPath: /data
+              readOnly: true
+          resources:
+            requests:
+              memory: "1Gi"
+              cpu: "250m"
+            limits:
+              memory: "4Gi"
+              cpu: "1000m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: osrm-data
