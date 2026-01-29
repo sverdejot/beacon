@@ -167,6 +167,10 @@ func (h *Handler) handleActiveIncidents(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *Handler) handleSSE(w http.ResponseWriter, r *http.Request) {
+	SSEConnectionsTotal.Inc()
+	SSEConnectionsActive.Inc()
+	defer SSEConnectionsActive.Dec()
+
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
@@ -207,6 +211,7 @@ func (h *Handler) sendSummaryEvent(ctx context.Context, w http.ResponseWriter, r
 	}
 
 	fmt.Fprintf(w, "event: summary\ndata: %s\n\n", data) //nolint:errcheck
+	SSEEventsTotal.WithLabelValues("summary").Inc()
 	return rc.Flush()
 }
 

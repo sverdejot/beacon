@@ -26,7 +26,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Start metrics server
 	go func() {
 		http.Handle("/metrics", promhttp.Handler())
 		http.HandleFunc("/health", func(w http.ResponseWriter, _ *http.Request) {

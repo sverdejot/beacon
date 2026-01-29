@@ -7,6 +7,7 @@ import (
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type Repository struct {
@@ -42,7 +43,19 @@ func (r *Repository) Close() error {
 	return r.conn.Close()
 }
 
+func (r *Repository) observeQuery(queryName string) func() {
+	timer := prometheus.NewTimer(ClickHouseQueryDuration.WithLabelValues(queryName))
+	return func() {
+		timer.ObserveDuration()
+	}
+}
+
+func (r *Repository) recordQueryError(queryName string) {
+	ClickHouseQueryErrors.WithLabelValues(queryName).Inc()
+}
+
 func (r *Repository) GetSummary(ctx context.Context) (*Summary, error) {
+	defer r.observeQuery("summary")()
 	summary := &Summary{}
 
 	err := r.conn.QueryRow(ctx, `
@@ -51,6 +64,7 @@ func (r *Repository) GetSummary(ctx context.Context) (*Summary, error) {
 		WHERE end_timestamp = toDateTime(0) OR end_timestamp > now()
 	`).Scan(&summary.ActiveIncidents)
 	if err != nil {
+		r.recordQueryError("summary")
 		return nil, fmt.Errorf("failed to get active incidents: %w", err)
 	}
 
@@ -94,6 +108,7 @@ func (r *Repository) GetSummary(ctx context.Context) (*Summary, error) {
 }
 
 func (r *Repository) GetHourlyTrend(ctx context.Context) ([]HourlyDataPoint, error) {
+	defer r.observeQuery("hourly_trend")()
 	rows, err := r.conn.Query(ctx, `
 		SELECT toStartOfHour(timestamp) AS hour, toInt32(count()) AS count
 		FROM beacon.traffic_incidents FINAL
@@ -102,6 +117,7 @@ func (r *Repository) GetHourlyTrend(ctx context.Context) ([]HourlyDataPoint, err
 		ORDER BY hour
 	`)
 	if err != nil {
+		r.recordQueryError("hourly_trend")
 		return nil, fmt.Errorf("failed to get hourly trend: %w", err)
 	}
 	defer rows.Close() //nolint:errcheck
@@ -119,6 +135,7 @@ func (r *Repository) GetHourlyTrend(ctx context.Context) ([]HourlyDataPoint, err
 }
 
 func (r *Repository) GetDailyTrend(ctx context.Context) ([]DailyDataPoint, error) {
+	defer r.observeQuery("daily_trend")()
 	rows, err := r.conn.Query(ctx, `
 		SELECT
 			toStartOfDay(timestamp) AS date,
@@ -130,6 +147,7 @@ func (r *Repository) GetDailyTrend(ctx context.Context) ([]DailyDataPoint, error
 		ORDER BY date
 	`)
 	if err != nil {
+		r.recordQueryError("daily_trend")
 		return nil, fmt.Errorf("failed to get daily trend: %w", err)
 	}
 	defer rows.Close() //nolint:errcheck
@@ -301,6 +319,7 @@ func (r *Repository) GetTopSubtypes(ctx context.Context, limit int) ([]TopSubtyp
 }
 
 func (r *Repository) GetHeatmapData(ctx context.Context) ([]HeatmapPoint, error) {
+	defer r.observeQuery("heatmap")()
 	rows, err := r.conn.Query(ctx, `
 		SELECT
 			round(lat, 2) AS lat,
@@ -314,6 +333,7 @@ func (r *Repository) GetHeatmapData(ctx context.Context) ([]HeatmapPoint, error)
 		LIMIT 1000
 	`)
 	if err != nil {
+		r.recordQueryError("heatmap")
 		return nil, fmt.Errorf("failed to get heatmap data: %w", err)
 	}
 	defer rows.Close() //nolint:errcheck
@@ -331,6 +351,7 @@ func (r *Repository) GetHeatmapData(ctx context.Context) ([]HeatmapPoint, error)
 }
 
 func (r *Repository) GetActiveIncidents(ctx context.Context) ([]ActiveIncident, error) {
+	defer r.observeQuery("active_incidents")()
 	rows, err := r.conn.Query(ctx, `
 		SELECT
 			id,
@@ -348,6 +369,7 @@ func (r *Repository) GetActiveIncidents(ctx context.Context) ([]ActiveIncident, 
 		LIMIT 100
 	`)
 	if err != nil {
+		r.recordQueryError("active_incidents")
 		return nil, fmt.Errorf("failed to get active incidents: %w", err)
 	}
 	defer rows.Close() //nolint:errcheck

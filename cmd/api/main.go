@@ -8,10 +8,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"time"
 
 	"github.com/caarlos0/env/v11"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sverdejot/beacon/internal/cache"
 	"github.com/sverdejot/beacon/internal/shared"
 	"github.com/sverdejot/beacon/internal/ui"
@@ -22,6 +24,11 @@ func stream(updateCh chan shared.MapLocation, deleteCh chan string) func(w http.
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		slog.InfoContext(ctx, "client connected")
+
+		ui.SSEConnectionsTotal.Inc()
+		ui.SSEConnectionsActive.Inc()
+		defer ui.SSEConnectionsActive.Dec()
+
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.Header().Set("Cache-Control", "no-cache")
 		w.Header().Set("Connection", "keep-alive")
@@ -39,6 +46,7 @@ func stream(updateCh chan shared.MapLocation, deleteCh chan string) func(w http.
 				}
 
 				fmt.Fprintf(w, "event: update\ndata: %s\n\n", data) //nolint:errcheck
+				ui.SSEEventsTotal.WithLabelValues("update").Inc()
 				err = rc.Flush()
 				if err != nil {
 					slog.ErrorContext(ctx, fmt.Sprintf("error sending event through sse (client may have closed): %s", err))
@@ -53,6 +61,7 @@ func stream(updateCh chan shared.MapLocation, deleteCh chan string) func(w http.
 				}
 
 				fmt.Fprintf(w, "event: delete\ndata: %s\n\n", data) //nolint:errcheck
+				ui.SSEEventsTotal.WithLabelValues("delete").Inc()
 				err = rc.Flush()
 				if err != nil {
 					slog.ErrorContext(ctx, fmt.Sprintf("error sending delete event through sse (client may have closed): %s", err))
@@ -76,12 +85,52 @@ func cors(next http.Handler) http.Handler {
 	})
 }
 
+type responseWriter struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func (rw *responseWriter) WriteHeader(code int) {
+	rw.statusCode = code
+	rw.ResponseWriter.WriteHeader(code)
+}
+
+func metricsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		rw := &responseWriter{ResponseWriter: w, statusCode: http.StatusOK}
+
+		next.ServeHTTP(rw, r)
+
+		duration := time.Since(start).Seconds()
+		endpoint := r.URL.Path
+		method := r.Method
+		status := strconv.Itoa(rw.statusCode)
+
+		ui.HTTPRequestsTotal.WithLabelValues(method, endpoint, status).Inc()
+		ui.HTTPRequestDuration.WithLabelValues(method, endpoint).Observe(duration)
+	})
+}
+
 func main() {
 	cfg, err := env.ParseAs[config]()
 	if err != nil {
 		slog.Error(fmt.Sprintf("failed to parse config: %s", err))
 		os.Exit(1)
 	}
+
+	go func() {
+		metricsMux := http.NewServeMux()
+		metricsMux.Handle("/metrics", promhttp.Handler())
+		metricsMux.HandleFunc("/health", func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("OK")) //nolint:errcheck
+		})
+		slog.Info(fmt.Sprintf("starting metrics server on :%s", cfg.MetricsPort))
+		if err := http.ListenAndServe(":"+cfg.MetricsPort, metricsMux); err != nil {
+			slog.Error(fmt.Sprintf("metrics server failed: %s", err))
+		}
+	}()
 
 	slog.Info(fmt.Sprintf("using [%s] as broker", cfg.MQTTBroker))
 	slog.Info(fmt.Sprintf("using [%s] as http port", cfg.HTTPPort))
@@ -125,7 +174,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:    ":" + cfg.HTTPPort,
-		Handler: cors(mux),
+		Handler: metricsMiddleware(cors(mux)),
 	}
 
 	go func() {
@@ -149,6 +198,8 @@ func main() {
 
 func mapIncidents(mapCache *cache.Cache) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ui.MapIncidentsRequests.Inc()
+
 		locations, err := mapCache.GetAllMapLocations(r.Context())
 		if err != nil {
 			slog.Error(fmt.Sprintf("failed to get map incidents: %s", err))
@@ -157,6 +208,7 @@ func mapIncidents(mapCache *cache.Cache) http.HandlerFunc {
 			return
 		}
 
+		ui.MapIncidentsCount.Set(float64(len(locations)))
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]any{"data": locations}) //nolint:errcheck
 	}
@@ -168,6 +220,7 @@ func locationStream(client mqtt.Client, mapCache *cache.Cache) (chan shared.MapL
 
 	tok := client.Subscribe("beacon/+/+/situations/#", 0, func(c mqtt.Client, m mqtt.Message) {
 		slog.Info(fmt.Sprintf("processing update [%d] from topic [%s]", m.MessageID(), m.Topic()))
+		ui.MQTTStreamMessagesTotal.WithLabelValues("update").Inc()
 
 		var record datex.Record
 		if err := json.Unmarshal(m.Payload(), &record); err != nil {
@@ -194,6 +247,7 @@ func locationStream(client mqtt.Client, mapCache *cache.Cache) (chan shared.MapL
 
 	tok = client.Subscribe("beacon/+/+/deletions/#", 0, func(c mqtt.Client, m mqtt.Message) {
 		slog.Info(fmt.Sprintf("processing deletion [%d] from topic [%s]", m.MessageID(), m.Topic()))
+		ui.MQTTStreamMessagesTotal.WithLabelValues("deletion").Inc()
 
 		var deletion datex.DeletionEvent
 		if err := json.Unmarshal(m.Payload(), &deletion); err != nil {
