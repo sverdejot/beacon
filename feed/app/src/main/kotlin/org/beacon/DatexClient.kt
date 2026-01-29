@@ -21,8 +21,16 @@ class DatexClient(private val url: String) {
     )
 
     fun fetch(): PayloadPublication? {
-        val xml = fetchXml()
-        return parseXml(xml)
+        Metrics.datexFetchTotal.increment()
+        return Metrics.datexFetchTimer.recordCallable {
+            try {
+                val xml = fetchXml()
+                parseXml(xml)
+            } catch (e: Exception) {
+                Metrics.datexFetchErrors.increment()
+                throw e
+            }
+        }
     }
 
     private fun fetchXml(): String {

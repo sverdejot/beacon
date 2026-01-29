@@ -80,6 +80,15 @@ class SituationProcessor(
             }
         }
 
+        // Update metrics
+        Metrics.situationsProcessedTotal.increment()
+        if (newRecords > 0) Metrics.situationsNewTotal.increment(newRecords.toDouble())
+        if (updatedCount > 0) Metrics.situationsUpdatedTotal.increment(updatedCount.toDouble())
+        if (deletedCount > 0) Metrics.situationsDeletedTotal.increment(deletedCount.toDouble())
+        if (scheduledCount > 0) Metrics.situationsScheduledTotal.increment(scheduledCount.toDouble())
+        Metrics.setTrackedRecords(knownRecords.size)
+        Metrics.setScheduledRecords(scheduledRecords.size)
+
         if (newRecords > 0 || updatedCount > 0 || deletedCount > 0) {
             println("Processed: $newRecords new, $updatedCount updated, $deletedCount deleted ($immediateCount immediate, $scheduledCount scheduled)")
         } else {

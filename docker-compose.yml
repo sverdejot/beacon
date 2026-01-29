@@ -62,8 +62,11 @@ services:
     build:
       context: .
       dockerfile: build/feed/Dockerfile
+    ports:
+      - "9090:9090"
     environment:
       MQTT_BROKER: tcp://broker:1883
+      METRICS_PORT: "9090"
     depends_on:
       health:
         condition: service_completed_successfully

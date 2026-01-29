@@ -38,18 +38,26 @@ class MqttPublisher(
     }
 
     fun publish(record: SituationRecord) {
-        val region = record.extractProvince().normalizeForTopic()
-        val eventType = record.extractEventType()
+        Metrics.mqttPublishTimer.record {
+            try {
+                val region = record.extractProvince().normalizeForTopic()
+                val eventType = record.extractEventType()
 
-        val topic = "$topicPrefix/$region/situations/$eventType"
-        val json = objectMapper.writeValueAsString(record)
+                val topic = "$topicPrefix/$region/situations/$eventType"
+                val json = objectMapper.writeValueAsString(record)
 
-        val message = MqttMessage(json.toByteArray()).apply {
-            qos = 1
-            isRetained = false
+                val message = MqttMessage(json.toByteArray()).apply {
+                    qos = 1
+                    isRetained = false
+                }
+
+                client.publish(topic, message)
+                Metrics.mqttPublishTotal.increment()
+            } catch (e: Exception) {
+                Metrics.mqttPublishErrors.increment()
+                throw e
+            }
         }
-
-        client.publish(topic, message)
     }
 
     fun publishDeletion(id: String, province: String, eventType: String) {
@@ -66,6 +74,7 @@ class MqttPublisher(
         }
 
         client.publish(topic, message)
+        Metrics.mqttDeletionTotal.increment()
         println("Published deletion for $id to $topic")
     }
 

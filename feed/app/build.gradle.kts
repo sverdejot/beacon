@@ -45,6 +45,9 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-jaxb-annotations:2.18.2")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.18.2")
     implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.18.2")
+
+    // Prometheus metrics
+    implementation("io.micrometer:micrometer-registry-prometheus:1.14.2")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

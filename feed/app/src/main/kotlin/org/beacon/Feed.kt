@@ -10,8 +10,12 @@ private val MQTT_BROKER = System.getenv("MQTT_BROKER") ?: "tcp://localhost:1883"
 private const val MQTT_CLIENT_ID = "datex-feed"
 private const val MQTT_TOPIC_PREFIX = "beacon/v1/es"
 private const val POLL_INTERVAL_SECONDS = 60L
+private val METRICS_PORT = System.getenv("METRICS_PORT")?.toIntOrNull() ?: 9090
 
 fun main() {
+    // Start metrics server
+    Metrics.startServer(METRICS_PORT)
+
     val datexClient = DatexClient(DATEX_URL)
     val mqttPublisher = MqttPublisher(MQTT_BROKER, MQTT_CLIENT_ID, MQTT_TOPIC_PREFIX)
     val scheduler = Executors.newScheduledThreadPool(4)
