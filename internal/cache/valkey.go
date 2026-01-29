@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sverdejot/beacon/internal/shared"
 	"github.com/sverdejot/beacon/pkg/datex"
 	"github.com/valkey-io/valkey-go"
@@ -50,8 +51,12 @@ func (c *Cache) Close() {
 }
 
 func (c *Cache) StoreMapLocation(ctx context.Context, loc *shared.MapLocation, validity *datex.Validity) error {
+	timer := prometheus.NewTimer(CacheOperationDuration.WithLabelValues("store"))
+	defer timer.ObserveDuration()
+
 	data, err := json.Marshal(loc)
 	if err != nil {
+		CacheOperations.WithLabelValues("store", "error").Inc()
 		return fmt.Errorf("failed to marshal location: %w", err)
 	}
 
@@ -65,6 +70,7 @@ func (c *Cache) StoreMapLocation(ctx context.Context, loc *shared.MapLocation, v
 		Build()
 
 	if err := c.client.Do(ctx, req).Error(); err != nil {
+		CacheOperations.WithLabelValues("store", "error").Inc()
 		return fmt.Errorf("failed to store location: %w", err)
 	}
 
@@ -77,9 +83,11 @@ func (c *Cache) StoreMapLocation(ctx context.Context, loc *shared.MapLocation, v
 		Build()
 
 	if err := c.client.Do(ctx, req).Error(); err != nil {
+		CacheOperations.WithLabelValues("store", "error").Inc()
 		return fmt.Errorf("failed to set expiration: %w", err)
 	}
 
+	CacheOperations.WithLabelValues("store", "success").Inc()
 	return nil
 }
 
@@ -104,6 +112,9 @@ func (c *Cache) GetMapLocation(ctx context.Context, id string) (*shared.MapLocat
 }
 
 func (c *Cache) RemoveMapLocation(ctx context.Context, id string) error {
+	timer := prometheus.NewTimer(CacheOperationDuration.WithLabelValues("remove"))
+	defer timer.ObserveDuration()
+
 	req := c.client.B().
 		Hdel().
 		Key(mapIncidentsKey).
@@ -111,6 +122,7 @@ func (c *Cache) RemoveMapLocation(ctx context.Context, id string) error {
 		Build()
 
 	if err := c.client.Do(ctx, req).Error(); err != nil {
+		CacheOperations.WithLabelValues("remove", "error").Inc()
 		return fmt.Errorf("failed to remove location: %w", err)
 	}
 
@@ -122,10 +134,14 @@ func (c *Cache) RemoveMapLocation(ctx context.Context, id string) error {
 
 	c.client.Do(ctx, req) //nolint:errcheck
 
+	CacheOperations.WithLabelValues("remove", "success").Inc()
 	return nil
 }
 
 func (c *Cache) GetAllMapLocations(ctx context.Context) ([]shared.MapLocation, error) {
+	timer := prometheus.NewTimer(CacheOperationDuration.WithLabelValues("get_all"))
+	defer timer.ObserveDuration()
+
 	// clean up expired incidents
 	if err := c.cleanupExpired(ctx); err != nil {
 		slog.Warn(fmt.Sprintf("failed to cleanup expired incidents: %v", err))
@@ -140,6 +156,7 @@ func (c *Cache) GetAllMapLocations(ctx context.Context) ([]shared.MapLocation, e
 		AsStrMap()
 
 	if err != nil {
+		CacheOperations.WithLabelValues("get_all", "error").Inc()
 		return nil, fmt.Errorf("failed to get locations: %w", err)
 	}
 
@@ -151,6 +168,9 @@ func (c *Cache) GetAllMapLocations(ctx context.Context) ([]shared.MapLocation, e
 		}
 		locations = append(locations, loc)
 	}
+
+	CacheOperations.WithLabelValues("get_all", "success").Inc()
+	CacheItemsCount.Set(float64(len(locations)))
 
 	return locations, nil
 }
@@ -207,6 +227,7 @@ func (c *Cache) cleanupExpired(ctx context.Context) error {
 				Field(id).
 				Build()
 			c.client.Do(ctx, req) //nolint:errcheck
+			CacheCleanupExpired.Inc()
 		}
 	}
 

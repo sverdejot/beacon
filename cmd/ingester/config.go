@@ -10,4 +10,5 @@ type config struct {
 	RedisAddr          string `env:"REDIS_ADDR"          envDefault:"localhost:6379"`
 	RedisPassword      string `env:"REDIS_PASSWORD"      envDefault:""`
 	RedisDB            int    `env:"REDIS_DB"            envDefault:"0"`
+	MetricsPort        string `env:"METRICS_PORT"        envDefault:"9091"`
 }

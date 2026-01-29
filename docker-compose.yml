@@ -30,6 +30,8 @@ services:
     build:
       context: .
       dockerfile: build/ingester/Dockerfile
+    ports:
+      - "9091:9091"
     depends_on:
       health:
         condition: service_completed_successfully
@@ -49,6 +51,7 @@ services:
       CLICKHOUSE_PASSWORD: beacon
       OSRM_URL: "http://osrm:5000"
       REDIS_ADDR: valkey:6379
+      METRICS_PORT: "9091"
 
   osrm:
     image: osrm/osrm-backend

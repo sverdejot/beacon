@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sverdejot/beacon/pkg/datex"
 )
 
@@ -50,6 +51,9 @@ func (rs *RouteService) GetRoute(from, to datex.Coordinates) []datex.Coordinates
 
 // GetRouteWithDistance returns the full route result including distance
 func (rs *RouteService) GetRouteWithDistance(from, to datex.Coordinates) RouteResult {
+	timer := prometheus.NewTimer(OSRMRequestDuration)
+	defer timer.ObserveDuration()
+
 	url := fmt.Sprintf(getRouteTemplatePath,
 		rs.url, from.Lon, from.Lat, to.Lon, to.Lat)
 
@@ -61,16 +65,19 @@ func (rs *RouteService) GetRouteWithDistance(from, to datex.Coordinates) RouteRe
 
 	resp, err := rs.client.Get(url)
 	if err != nil {
+		OSRMRequests.WithLabelValues("error").Inc()
 		return fallback
 	}
 	defer resp.Body.Close() //nolint:errcheck
 
 	var osrm osrmResponse
 	if err := json.NewDecoder(resp.Body).Decode(&osrm); err != nil {
+		OSRMRequests.WithLabelValues("error").Inc()
 		return fallback
 	}
 
 	if len(osrm.Routes) == 0 {
+		OSRMRequests.WithLabelValues("fallback").Inc()
 		return fallback
 	}
 
@@ -79,6 +86,9 @@ func (rs *RouteService) GetRouteWithDistance(from, to datex.Coordinates) RouteRe
 	for i, c := range route.Geometry.Coordinates {
 		coords[i] = datex.Coordinates{Lat: c[1], Lon: c[0]}
 	}
+
+	OSRMRequests.WithLabelValues("success").Inc()
+	OSRMRouteDistance.Observe(route.Distance)
 
 	return RouteResult{
 		Path:     coords,

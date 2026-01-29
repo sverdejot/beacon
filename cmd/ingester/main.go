@@ -5,15 +5,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"os/signal"
 
 	"github.com/caarlos0/env/v11"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sverdejot/beacon/internal/cache"
 	"github.com/sverdejot/beacon/internal/ingester"
-	"github.com/sverdejot/beacon/internal/shared"
 	"github.com/sverdejot/beacon/internal/routing"
+	"github.com/sverdejot/beacon/internal/shared"
 	"github.com/sverdejot/beacon/pkg/datex"
 )
 
@@ -23,6 +25,19 @@ func main() {
 		slog.Error(fmt.Sprintf("failed to parse config: %s", err))
 		os.Exit(1)
 	}
+
+	// Start metrics server
+	go func() {
+		http.Handle("/metrics", promhttp.Handler())
+		http.HandleFunc("/health", func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("OK")) //nolint:errcheck
+		})
+		slog.Info(fmt.Sprintf("starting metrics server on :%s", cfg.MetricsPort))
+		if err := http.ListenAndServe(":"+cfg.MetricsPort, nil); err != nil {
+			slog.Error(fmt.Sprintf("metrics server failed: %s", err))
+		}
+	}()
 
 	slog.Info(fmt.Sprintf("connecting to MQTT broker: %s", cfg.MQTTBroker))
 	slog.Info(fmt.Sprintf("connecting to ClickHouse: %s/%s", cfg.ClickHouseAddr, cfg.ClickHouseDatabase))
@@ -65,9 +80,12 @@ func main() {
 		slog.Info(fmt.Sprintf("received message [%d] from topic [%s]", m.MessageID(), m.Topic()))
 
 		if datex.IsDeletionTopic(m.Topic()) {
+			ingester.MQTTMessagesReceived.WithLabelValues("deletion").Inc()
+
 			var deletion datex.DeletionEvent
 			if err := json.Unmarshal(m.Payload(), &deletion); err != nil {
 				slog.Error(fmt.Sprintf("failed to unmarshal deletion message: %s", err))
+				ingester.MQTTProcessingErrors.Inc()
 				return
 			}
 
@@ -82,13 +100,18 @@ func main() {
 			} else {
 				slog.Info(fmt.Sprintf("marked incident %s as ended in ClickHouse", deletion.ID))
 			}
+
+			ingester.DeletionsProcessed.Inc()
 			return
 		}
+
+		ingester.MQTTMessagesReceived.WithLabelValues("situation").Inc()
 
 		var record datex.Record
 		rawJSON := string(m.Payload())
 		if err := json.Unmarshal(m.Payload(), &record); err != nil {
 			slog.Error(fmt.Sprintf("failed to unmarshal message: %s", err))
+			ingester.MQTTProcessingErrors.Inc()
 			return
 		}
 

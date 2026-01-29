@@ -9,6 +9,7 @@ import (
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ClickHouse/clickhouse-go/v2/lib/driver"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 const (
@@ -62,6 +63,7 @@ func (c *ClickHouseClient) Insert(inc *Incident) {
 	c.batchMu.Lock()
 	c.batch = append(c.batch, *inc)
 	shouldFlush := len(c.batch) >= c.batchSize
+	ClickHousePendingBatch.Set(float64(len(c.batch)))
 	c.batchMu.Unlock()
 
 	if shouldFlush {
@@ -77,7 +79,13 @@ func (c *ClickHouseClient) Flush() {
 	}
 	toInsert := c.batch
 	c.batch = make([]Incident, 0, 100)
+	ClickHousePendingBatch.Set(0)
 	c.batchMu.Unlock()
+
+	timer := prometheus.NewTimer(ClickHouseFlushDuration)
+	defer timer.ObserveDuration()
+
+	ClickHouseBatchSize.Observe(float64(len(toInsert)))
 
 	ctx := context.Background()
 	batch, err := c.conn.PrepareBatch(ctx, `
@@ -91,6 +99,7 @@ func (c *ClickHouseClient) Flush() {
 	`)
 	if err != nil {
 		slog.Error(fmt.Sprintf("failed to prepare batch: %s", err))
+		ClickHouseErrors.WithLabelValues("prepare_batch").Inc()
 		return
 	}
 
@@ -147,14 +156,17 @@ func (c *ClickHouseClient) Flush() {
 		)
 		if err != nil {
 			slog.Error(fmt.Sprintf("failed to append to batch: %s", err))
+			ClickHouseErrors.WithLabelValues("append").Inc()
 		}
 	}
 
 	if err := batch.Send(); err != nil {
 		slog.Error(fmt.Sprintf("failed to send batch: %s", err))
+		ClickHouseErrors.WithLabelValues("send").Inc()
 		return
 	}
 
+	ClickHouseInserts.Add(float64(len(toInsert)))
 	slog.Info(fmt.Sprintf("inserted %d incidents into clickhouse", len(toInsert)))
 }
 
@@ -176,5 +188,9 @@ func (c *ClickHouseClient) SetEndTimestamp(id string, endTime time.Time) error {
 		UPDATE end_timestamp = ?
 		WHERE id = ? AND (end_timestamp = toDateTime('1970-01-01 00:00:00') OR end_timestamp > ?)
 	`
-	return c.conn.Exec(context.Background(), query, endTime, id, endTime)
+	err := c.conn.Exec(context.Background(), query, endTime, id, endTime)
+	if err != nil {
+		ClickHouseErrors.WithLabelValues("update").Inc()
+	}
+	return err
 }
