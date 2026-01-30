@@ -9,6 +9,7 @@ import org.eclipse.paho.client.mqttv3.MqttClient
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
+import org.slf4j.LoggerFactory
 import java.time.Instant
 
 class MqttPublisher(
@@ -16,6 +17,7 @@ class MqttPublisher(
     clientId: String,
     private val topicPrefix: String
 ) {
+    private val logger = LoggerFactory.getLogger(MqttPublisher::class.java)
     private val client: MqttClient
     private val objectMapper: ObjectMapper = ObjectMapper()
         .registerModule(JaxbAnnotationModule())
@@ -24,6 +26,7 @@ class MqttPublisher(
         .setSerializationInclusion(JsonInclude.Include.NON_EMPTY)
 
     init {
+        logger.info("connecting to MQTT broker: brokerUrl={}, clientId={}", brokerUrl, clientId)
         val persistence = MemoryPersistence()
         client = MqttClient(brokerUrl, clientId, persistence)
 
@@ -34,7 +37,7 @@ class MqttPublisher(
         }
 
         client.connect(options)
-        println("Connected to MQTT broker")
+        logger.info("connected to MQTT broker")
     }
 
     fun publish(record: SituationRecord) {
@@ -53,8 +56,12 @@ class MqttPublisher(
 
                 client.publish(topic, message)
                 Metrics.mqttPublishTotal.increment()
+                logger.debug("published situation: id={}, topic={}, size={} bytes",
+                    record.id, topic, json.length)
             } catch (e: Exception) {
                 Metrics.mqttPublishErrors.increment()
+                logger.error("failed to publish situation: id={}, error={}",
+                    record.id, e.message)
                 throw e
             }
         }
@@ -75,10 +82,12 @@ class MqttPublisher(
 
         client.publish(topic, message)
         Metrics.mqttDeletionTotal.increment()
-        println("Published deletion for $id to $topic")
+        logger.info("published deletion: id={}, topic={}", id, topic)
     }
 
     fun disconnect() {
+        logger.info("disconnecting from MQTT broker")
         client.disconnect()
+        logger.info("disconnected from MQTT broker")
     }
 }

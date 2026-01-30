@@ -1,9 +1,11 @@
 package org.beacon
 
 import com.beacon.schema.situation.SituationPublication
-import java.time.Instant
+import org.slf4j.LoggerFactory
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+
+private val logger = LoggerFactory.getLogger("org.beacon.Feed")
 
 private const val DATEX_URL = "https://nap.dgt.es/datex2/v3/dgt/SituationPublication/datex2_v36.xml"
 private val MQTT_BROKER = System.getenv("MQTT_BROKER") ?: "tcp://localhost:1883"
@@ -13,6 +15,10 @@ private const val POLL_INTERVAL_SECONDS = 60L
 private val METRICS_PORT = System.getenv("METRICS_PORT")?.toIntOrNull() ?: 9090
 
 fun main() {
+    logger.info("starting feed service")
+    logger.info("configuration loaded: datexUrl={}, mqttBroker={}, pollInterval={}s, metricsPort={}",
+        DATEX_URL, MQTT_BROKER, POLL_INTERVAL_SECONDS, METRICS_PORT)
+
     // Start metrics server
     Metrics.startServer(METRICS_PORT)
 
@@ -22,10 +28,13 @@ fun main() {
     val processor = SituationProcessor(mqttPublisher, scheduler)
 
     Runtime.getRuntime().addShutdownHook(Thread {
+        logger.info("shutdown signal received, stopping services...")
         scheduler.shutdown()
         mqttPublisher.disconnect()
+        logger.info("shutdown complete")
     })
 
+    logger.info("starting scheduled polling every {} seconds", POLL_INTERVAL_SECONDS)
     scheduler.scheduleAtFixedRate(
         { poll(datexClient, processor) },
         0,
@@ -38,11 +47,16 @@ fun main() {
 
 private fun poll(client: DatexClient, processor: SituationProcessor) {
     try {
+        logger.debug("starting poll cycle")
         val publication = client.fetch()
         if (publication is SituationPublication) {
+            val situationCount = publication.situation.size
+            logger.debug("fetched {} situations from DATEX API", situationCount)
             processor.process(publication)
+        } else {
+            logger.warn("received unexpected publication type: {}", publication?.javaClass?.simpleName)
         }
     } catch (e: Exception) {
-        println("[${Instant.now()}] Error during poll: ${e.message}")
+        logger.error("error during poll cycle: {}", e.message, e)
     }
 }

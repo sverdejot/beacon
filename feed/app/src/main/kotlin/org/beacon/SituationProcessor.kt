@@ -2,6 +2,7 @@ package org.beacon
 
 import com.beacon.schema.situation.SituationPublication
 import com.beacon.schema.situation.SituationRecord
+import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.ConcurrentHashMap
@@ -19,6 +20,7 @@ class SituationProcessor(
     private val publisher: MqttPublisher,
     private val scheduler: ScheduledExecutorService
 ) {
+    private val logger = LoggerFactory.getLogger(SituationProcessor::class.java)
     private val knownRecords = ConcurrentHashMap<String, RecordMetadata>()
     private val scheduledRecords = ConcurrentHashMap.newKeySet<String>()
 
@@ -41,8 +43,9 @@ class SituationProcessor(
                 try {
                     publisher.publishDeletion(id, meta.province, meta.eventType)
                     deletedCount++
+                    logger.debug("detected deletion: id={}, province={}", id, meta.province)
                 } catch (e: Exception) {
-                    println("Failed to publish deletion for $id: ${e.message}")
+                    logger.error("failed to publish deletion: id={}, error={}", id, e.message)
                     // Re-add to retry next poll
                     knownRecords[id] = meta
                 }
@@ -62,8 +65,11 @@ class SituationProcessor(
                 val isUpdate = existingMeta != null
                 if (isUpdate) {
                     updatedCount++
+                    logger.debug("detected update: id={}, oldVersion={}, newVersion={}",
+                        record.id, existingMeta?.version, record.version)
                 } else {
                     newRecords++
+                    logger.debug("detected new record: id={}, version={}", record.id, record.version)
                 }
 
                 val startTime = record.validity.validityTimeSpecification.overallStartTime
@@ -90,11 +96,12 @@ class SituationProcessor(
         Metrics.setScheduledRecords(scheduledRecords.size)
 
         if (newRecords > 0 || updatedCount > 0 || deletedCount > 0) {
-            println("Processed: $newRecords new, $updatedCount updated, $deletedCount deleted ($immediateCount immediate, $scheduledCount scheduled)")
+            logger.info("processing complete: new={}, updated={}, deleted={}, immediate={}, scheduled={}",
+                newRecords, updatedCount, deletedCount, immediateCount, scheduledCount)
         } else {
-            println("No changes")
+            logger.debug("poll complete: no changes detected")
         }
-        println("Total tracked: ${knownRecords.size} records, ${scheduledRecords.size} pending")
+        logger.debug("state: trackedRecords={}, pendingScheduled={}", knownRecords.size, scheduledRecords.size)
     }
 
     private fun scheduleRecord(
@@ -105,6 +112,9 @@ class SituationProcessor(
     ) {
         val delay = Duration.between(now, publishTime).toMillis()
         scheduledRecords.add(recordKey)
+
+        logger.debug("scheduling record for future publish: id={}, delay={}ms, publishTime={}",
+            record.id, delay, publishTime)
 
         scheduler.schedule(
             { publishRecord(record, recordKey) },
@@ -126,9 +136,11 @@ class SituationProcessor(
                 version = record.version
             )
             knownRecords[record.id] = metadata
+            logger.trace("record published and tracked: id={}, version={}", record.id, record.version)
         } catch (e: Exception) {
             scheduledRecords.remove(recordKey)
-            println("Failed to publish record $recordKey: ${e.message}")
+            logger.error("failed to publish record: id={}, version={}, error={}",
+                record.id, record.version, e.message, e)
         }
     }
 }

@@ -48,6 +48,10 @@ dependencies {
 
     // Prometheus metrics
     implementation("io.micrometer:micrometer-registry-prometheus:1.14.2")
+
+    // Logging - SLF4J + Logback
+    implementation("org.slf4j:slf4j-api:2.0.16")
+    implementation("ch.qos.logback:logback-classic:1.5.15")
 }
 
 // Apply a specific Java toolchain to ease working on different environments.

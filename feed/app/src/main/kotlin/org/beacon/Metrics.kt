@@ -6,10 +6,12 @@ import io.micrometer.core.instrument.Gauge
 import io.micrometer.core.instrument.Timer
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
+import org.slf4j.LoggerFactory
 import java.net.InetSocketAddress
 import java.util.concurrent.atomic.AtomicInteger
 
 object Metrics {
+    private val logger = LoggerFactory.getLogger(Metrics::class.java)
     val registry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
 
     private const val PREFIX = "feed"
@@ -88,12 +90,14 @@ object Metrics {
     }
 
     fun startServer(port: Int = 9090) {
+        logger.info("starting metrics server on port {}", port)
         val server = HttpServer.create(InetSocketAddress(port), 0)
         server.createContext("/metrics") { exchange ->
             val response = registry.scrape()
             exchange.responseHeaders.set("Content-Type", "text/plain; version=0.0.4; charset=utf-8")
             exchange.sendResponseHeaders(200, response.toByteArray().size.toLong())
             exchange.responseBody.use { it.write(response.toByteArray()) }
+            logger.trace("served metrics request")
         }
         server.createContext("/health") { exchange ->
             val response = "OK"
@@ -102,6 +106,6 @@ object Metrics {
         }
         server.executor = null
         server.start()
-        println("Metrics server started on port $port")
+        logger.info("metrics server started: endpoints=[/metrics, /health]")
     }
 }
