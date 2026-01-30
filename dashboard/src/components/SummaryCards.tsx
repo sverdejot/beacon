@@ -1,10 +1,12 @@
-import type { Summary } from '../lib/types';
+import type { Summary, HourlyDataPoint, DailyDataPoint } from '../lib/types';
 import { useDashboard } from '../context/DashboardContext';
 import { useTranslation } from 'react-i18next';
 
 interface Props {
   summary: Summary | null;
   previousSummary?: Summary | null;
+  hourlyTrend?: HourlyDataPoint[];
+  dailyTrend?: DailyDataPoint[];
 }
 
 interface SparklineData {
@@ -65,16 +67,15 @@ function calculateTrend(current: number, previous: number): { value: number; dir
   };
 }
 
-// Mock sparkline data (in real implementation, this would come from API)
-function generateMockSparkline(baseValue: number): SparklineData {
-  const variance = baseValue * 0.3;
-  const values = Array.from({ length: 7 }, () =>
-    Math.max(0, baseValue + (Math.random() - 0.5) * variance)
-  );
-  return { values };
+function sparklineFromHourly(data: HourlyDataPoint[]): SparklineData {
+  return { values: data.map((d) => d.count) };
 }
 
-export function SummaryCards({ summary, previousSummary }: Props) {
+function sparklineFromDaily(data: DailyDataPoint[], field: 'count' | 'severe_count'): SparklineData {
+  return { values: data.map((d) => d[field]) };
+}
+
+export function SummaryCards({ summary, previousSummary, hourlyTrend, dailyTrend }: Props) {
   const { t } = useTranslation();
   let addFilter: ((filter: { type: 'province' | 'severity' | 'cause' | 'road'; value: string; label: string }) => void) | undefined;
   try {
@@ -125,9 +126,11 @@ export function SummaryCards({ summary, previousSummary }: Props) {
         <div className="card-value">{summary.active_incidents.toLocaleString()}</div>
         <div className="card-title">{t('summary.activeIncidents')}</div>
         <div className="card-subtitle">{t('summary.currentlyOngoing')}</div>
-        <div className="sparkline-container">
-          <Sparkline data={generateMockSparkline(summary.active_incidents)} />
-        </div>
+        {hourlyTrend && hourlyTrend.length >= 2 && (
+          <div className="sparkline-container">
+            <Sparkline data={sparklineFromHourly(hourlyTrend)} />
+          </div>
+        )}
       </div>
 
       {/* Severe Incidents */}
@@ -146,9 +149,11 @@ export function SummaryCards({ summary, previousSummary }: Props) {
         <div className="card-value">{summary.severe_incidents.toLocaleString()}</div>
         <div className="card-title">{t('summary.severeIncidents')}</div>
         <div className="card-subtitle">{t('summary.highOrHighest')}</div>
-        <div className="sparkline-container">
-          <Sparkline data={generateMockSparkline(summary.severe_incidents)} />
-        </div>
+        {dailyTrend && dailyTrend.length >= 2 && (
+          <div className="sparkline-container">
+            <Sparkline data={sparklineFromDaily(dailyTrend, 'severe_count')} />
+          </div>
+        )}
       </button>
 
       {/* Today's Total */}
@@ -162,9 +167,11 @@ export function SummaryCards({ summary, previousSummary }: Props) {
         <div className="card-value">{summary.todays_total.toLocaleString()}</div>
         <div className="card-title">{t('summary.todaysTotal')}</div>
         <div className="card-subtitle">{t('summary.reportedToday')}</div>
-        <div className="sparkline-container">
-          <Sparkline data={generateMockSparkline(summary.todays_total)} />
-        </div>
+        {dailyTrend && dailyTrend.length >= 2 && (
+          <div className="sparkline-container">
+            <Sparkline data={sparklineFromDaily(dailyTrend, 'count')} />
+          </div>
+        )}
       </div>
 
       {/* Peak Hour */}
@@ -177,9 +184,11 @@ export function SummaryCards({ summary, previousSummary }: Props) {
         <div className="card-value">{formatHour(summary.peak_hour)}</div>
         <div className="card-title">{t('summary.peakHour')}</div>
         <div className="card-subtitle">{t('summary.incidentsAtHour', { count: summary.peak_hour_count })}</div>
-        <div className="sparkline-container">
-          <Sparkline data={generateMockSparkline(summary.peak_hour_count || 10)} />
-        </div>
+        {hourlyTrend && hourlyTrend.length >= 2 && (
+          <div className="sparkline-container">
+            <Sparkline data={sparklineFromHourly(hourlyTrend)} />
+          </div>
+        )}
       </div>
     </div>
   );

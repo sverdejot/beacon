@@ -54,7 +54,7 @@ export default function Dashboard() {
 
       <LiveMap />
 
-      <SummaryCards summary={summary} />
+      <SummaryCards summary={summary} hourlyTrend={data.hourlyTrend} dailyTrend={data.dailyTrend} />
 
       <h2 className="section-title">Impact Metrics</h2>
       <ImpactMetricsCards data={data.impactSummary} />

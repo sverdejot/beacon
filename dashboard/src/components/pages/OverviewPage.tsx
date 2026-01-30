@@ -79,7 +79,7 @@ function OverviewContent() {
   return (
     <>
       <div style={{ marginBottom: '1.5rem' }}>
-        <SummaryCards summary={summary} />
+        <SummaryCards summary={summary} hourlyTrend={data.hourlyTrend} dailyTrend={data.dailyTrend} />
       </div>
 
       <h2 className="section-title">{t('section.impactMetrics')}</h2>
