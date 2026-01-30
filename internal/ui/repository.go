@@ -10,6 +10,11 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
+const (
+    maxExecutionTime = 60
+    maxBytesBeforeSpillingGroupbyToDisk = 100 * 1024 * 1024 // 100mb
+)
+
 type Repository struct {
 	conn driver.Conn
 }
@@ -23,7 +28,8 @@ func NewRepository(addr, database, user, password string) (*Repository, error) {
 			Password: password,
 		},
 		Settings: clickhouse.Settings{
-			"max_execution_time": 60,
+			"max_execution_time":                maxExecutionTime,
+			"max_bytes_before_external_group_by": maxBytesBeforeSpillingGroupbyToDisk,
 		},
 		DialTimeout:     10 * time.Second,
 		ConnMaxLifetime: time.Hour,
@@ -60,7 +66,7 @@ func (r *Repository) GetSummary(ctx context.Context) (*Summary, error) {
 
 	err := r.conn.QueryRow(ctx, `
 		SELECT toInt32(count()) AS active_count
-		FROM beacon.traffic_incidents FINAL
+		FROM beacon.traffic_incidents
 		WHERE end_timestamp = toDateTime(0) OR end_timestamp > now()
 	`).Scan(&summary.ActiveIncidents)
 	if err != nil {
@@ -70,7 +76,7 @@ func (r *Repository) GetSummary(ctx context.Context) (*Summary, error) {
 
 	err = r.conn.QueryRow(ctx, `
 		SELECT toInt32(count()) AS severe_count
-		FROM beacon.traffic_incidents FINAL
+		FROM beacon.traffic_incidents
 		WHERE (end_timestamp = toDateTime(0) OR end_timestamp > now())
 		  AND severity IN ('high', 'highest')
 	`).Scan(&summary.SevereIncidents)
@@ -80,7 +86,7 @@ func (r *Repository) GetSummary(ctx context.Context) (*Summary, error) {
 
 	err = r.conn.QueryRow(ctx, `
 		SELECT toInt32(count()) AS todays_total
-		FROM beacon.traffic_incidents FINAL
+		FROM beacon.traffic_incidents
 		WHERE timestamp >= today()
 	`).Scan(&summary.TodaysTotal)
 	if err != nil {
@@ -89,10 +95,10 @@ func (r *Repository) GetSummary(ctx context.Context) (*Summary, error) {
 
 	// Peak hour today (hour with most incidents)
 	err = r.conn.QueryRow(ctx, `
-		SELECT 
+		SELECT
 			toInt32(toHour(timestamp)) AS hour,
 			toInt32(count()) AS cnt
-		FROM beacon.traffic_incidents FINAL
+		FROM beacon.traffic_incidents
 		WHERE timestamp >= today()
 		GROUP BY hour
 		ORDER BY cnt DESC
@@ -111,7 +117,7 @@ func (r *Repository) GetHourlyTrend(ctx context.Context) ([]HourlyDataPoint, err
 	defer r.observeQuery("hourly_trend")()
 	rows, err := r.conn.Query(ctx, `
 		SELECT toStartOfHour(timestamp) AS hour, toInt32(count()) AS count
-		FROM beacon.traffic_incidents FINAL
+		FROM beacon.traffic_incidents
 		WHERE timestamp >= now() - INTERVAL 24 HOUR
 		GROUP BY hour
 		ORDER BY hour
@@ -141,7 +147,7 @@ func (r *Repository) GetDailyTrend(ctx context.Context) ([]DailyDataPoint, error
 			toStartOfDay(timestamp) AS date,
 			toInt32(count()) AS count,
 			toInt32(countIf(severity IN ('high', 'highest'))) AS severe_count
-		FROM beacon.traffic_incidents FINAL
+		FROM beacon.traffic_incidents
 		WHERE timestamp >= today() - INTERVAL 30 DAY
 		GROUP BY date
 		ORDER BY date
@@ -167,7 +173,7 @@ func (r *Repository) GetDailyTrend(ctx context.Context) ([]DailyDataPoint, error
 func (r *Repository) GetSeverityDistribution(ctx context.Context) ([]DistributionItem, error) {
 	rows, err := r.conn.Query(ctx, `
 		SELECT severity, toInt32(count()) AS count
-		FROM beacon.traffic_incidents FINAL
+		FROM beacon.traffic_incidents
 		WHERE timestamp >= today() - INTERVAL 7 DAY
 		  AND severity <> ''
 		GROUP BY severity
@@ -193,7 +199,7 @@ func (r *Repository) GetSeverityDistribution(ctx context.Context) ([]Distributio
 func (r *Repository) GetCauseTypeDistribution(ctx context.Context) ([]DistributionItem, error) {
 	rows, err := r.conn.Query(ctx, `
 		SELECT cause_type, toInt32(count()) AS count
-		FROM beacon.traffic_incidents FINAL
+		FROM beacon.traffic_incidents
 		WHERE timestamp >= today() - INTERVAL 7 DAY
 		  AND cause_type <> ''
 		GROUP BY cause_type
@@ -219,7 +225,7 @@ func (r *Repository) GetCauseTypeDistribution(ctx context.Context) ([]Distributi
 func (r *Repository) GetProvinceDistribution(ctx context.Context) ([]DistributionItem, error) {
 	rows, err := r.conn.Query(ctx, `
 		SELECT province, toInt32(count()) AS count
-		FROM beacon.traffic_incidents FINAL
+		FROM beacon.traffic_incidents
 		WHERE timestamp >= today() - INTERVAL 7 DAY
 		  AND province <> ''
 		GROUP BY province
@@ -249,7 +255,7 @@ func (r *Repository) GetTopRoads(ctx context.Context, limit int) ([]TopRoad, err
 
 	rows, err := r.conn.Query(ctx, `
 		SELECT road_name, toInt32(count()) AS count
-		FROM beacon.traffic_incidents FINAL
+		FROM beacon.traffic_incidents
 		WHERE timestamp >= today() - INTERVAL 7 DAY
 		  AND road_name <> ''
 		GROUP BY road_name
@@ -281,7 +287,7 @@ func (r *Repository) GetTopSubtypes(ctx context.Context, limit int) ([]TopSubtyp
 	var total int32
 	err := r.conn.QueryRow(ctx, `
 		SELECT toInt32(count())
-		FROM beacon.traffic_incidents FINAL
+		FROM beacon.traffic_incidents
 		ARRAY JOIN cause_subtypes AS subtype
 		WHERE timestamp >= today() - INTERVAL 7 DAY
 	`).Scan(&total)
@@ -291,7 +297,7 @@ func (r *Repository) GetTopSubtypes(ctx context.Context, limit int) ([]TopSubtyp
 
 	rows, err := r.conn.Query(ctx, `
 		SELECT subtype, toInt32(count()) AS count
-		FROM beacon.traffic_incidents FINAL
+		FROM beacon.traffic_incidents
 		ARRAY JOIN cause_subtypes AS subtype
 		WHERE timestamp >= today() - INTERVAL 7 DAY
 		GROUP BY subtype
@@ -325,7 +331,7 @@ func (r *Repository) GetHeatmapData(ctx context.Context) ([]HeatmapPoint, error)
 			round(lat, 2) AS lat,
 			round(lon, 2) AS lon,
 			toInt32(count()) AS weight
-		FROM beacon.traffic_incidents FINAL
+		FROM beacon.traffic_incidents
 		WHERE timestamp >= today() - INTERVAL 7 DAY
 		  AND lat != 0 AND lon != 0
 		GROUP BY lat, lon
@@ -363,8 +369,13 @@ func (r *Repository) GetActiveIncidents(ctx context.Context) ([]ActiveIncident, 
 			toFloat64(dateDiff('minute', timestamp, now())) AS duration_mins,
 			lat,
 			lon
-		FROM beacon.traffic_incidents FINAL
-		WHERE end_timestamp = toDateTime(0) OR end_timestamp > now()
+		FROM beacon.traffic_incidents
+		WHERE (end_timestamp = toDateTime(0) OR end_timestamp > now())
+		  AND (id, version) IN (
+			SELECT id, max(version) FROM beacon.traffic_incidents
+			WHERE end_timestamp = toDateTime(0) OR end_timestamp > now()
+			GROUP BY id
+		  )
 		ORDER BY timestamp DESC
 		LIMIT 100
 	`)
@@ -405,7 +416,7 @@ func (r *Repository) GetImpactSummary(ctx context.Context) (*ImpactSummary, erro
 			toFloat64(sum(length_meters) / 1000) AS total_km,
 			toFloat64(if(countIf(length_meters > 0) > 0, sum(length_meters) / countIf(length_meters > 0) / 1000, 0)) AS avg_km,
 			toInt32(countIf(length_meters > 0)) AS incidents_with_km
-		FROM beacon.traffic_incidents FINAL
+		FROM beacon.traffic_incidents
 		WHERE timestamp >= today() - INTERVAL 7 DAY
 	`).Scan(
 		&summary.TotalAffectedKm,
@@ -418,7 +429,7 @@ func (r *Repository) GetImpactSummary(ctx context.Context) (*ImpactSummary, erro
 
 	err = r.conn.QueryRow(ctx, `
 		SELECT province, toInt32(count()) AS cnt
-		FROM beacon.traffic_incidents FINAL
+		FROM beacon.traffic_incidents
 		WHERE timestamp >= today() - INTERVAL 7 DAY
 		  AND province <> ''
 		GROUP BY province
@@ -434,7 +445,7 @@ func (r *Repository) GetImpactSummary(ctx context.Context) (*ImpactSummary, erro
 		SELECT 
 			if(road_number <> '', road_number, road_name) AS road,
 			toInt32(count()) AS cnt
-		FROM beacon.traffic_incidents FINAL
+		FROM beacon.traffic_incidents
 		WHERE timestamp >= today() - INTERVAL 7 DAY
 		  AND (road_number <> '' OR road_name <> '')
 		GROUP BY road
@@ -455,7 +466,7 @@ func (r *Repository) GetImpactSummary(ctx context.Context) (*ImpactSummary, erro
 					'visibilityReduced', 'badWeather', 'smokeHazard', 'flooding', 'avalanches'
 				]) OR cause_type = 'poorEnvironment'
 			)) AS weather_count
-		FROM beacon.traffic_incidents FINAL
+		FROM beacon.traffic_incidents
 		WHERE timestamp >= today() - INTERVAL 7 DAY
 	`).Scan(&summary.TotalIncidents, &summary.WeatherIncidents)
 	if err != nil {
@@ -484,7 +495,7 @@ func (r *Repository) GetDurationDistribution(ctx context.Context) ([]DurationBuc
 			toFloat64(avg(duration_mins)) AS avg_mins
 		FROM (
 			SELECT dateDiff('minute', timestamp, end_timestamp) AS duration_mins
-			FROM beacon.traffic_incidents FINAL
+			FROM beacon.traffic_incidents
 			WHERE end_timestamp > toDateTime(0)
 			  AND end_timestamp > timestamp
 			  AND timestamp >= today() - INTERVAL 7 DAY
@@ -538,7 +549,7 @@ func (r *Repository) GetRouteAnalysis(ctx context.Context, limit int) ([]RouteIn
 			)) AS avg_severity,
 			toFloat64(sum(length_meters) / 1000) AS total_length_km,
 			groupArray(3)(cause_type) AS common_causes
-		FROM beacon.traffic_incidents FINAL
+		FROM beacon.traffic_incidents
 		WHERE timestamp >= today() - INTERVAL 7 DAY
 		  AND road_number <> ''
 		GROUP BY road_number
@@ -573,7 +584,7 @@ func (r *Repository) GetDirectionAnalysis(ctx context.Context) ([]DirectionStats
 	var total int32
 	err := r.conn.QueryRow(ctx, `
 		SELECT toInt32(count())
-		FROM beacon.traffic_incidents FINAL
+		FROM beacon.traffic_incidents
 		WHERE timestamp >= today() - INTERVAL 7 DAY
 		  AND direction <> ''
 	`).Scan(&total)
@@ -585,7 +596,7 @@ func (r *Repository) GetDirectionAnalysis(ctx context.Context) ([]DirectionStats
 		SELECT
 			direction,
 			toInt32(count()) AS incident_count
-		FROM beacon.traffic_incidents FINAL
+		FROM beacon.traffic_incidents
 		WHERE timestamp >= today() - INTERVAL 7 DAY
 		  AND direction <> ''
 		GROUP BY direction
@@ -634,7 +645,7 @@ func (r *Repository) GetRushHourComparison(ctx context.Context) ([]RushHourStats
 				avgIf(dateDiff('minute', timestamp, end_timestamp), end_timestamp > toDateTime(0) AND end_timestamp > timestamp),
 				0
 			)) AS avg_duration
-		FROM beacon.traffic_incidents FINAL
+		FROM beacon.traffic_incidents
 		WHERE timestamp >= today() - INTERVAL 7 DAY
 		GROUP BY period
 		ORDER BY
@@ -682,7 +693,7 @@ func (r *Repository) GetHotspots(ctx context.Context, limit int) ([]Hotspot, err
 					ELSE 1
 				END
 			)) AS avg_severity
-		FROM beacon.traffic_incidents FINAL
+		FROM beacon.traffic_incidents
 		WHERE timestamp >= today() - INTERVAL 30 DAY
 		  AND lat != 0 AND lon != 0
 		GROUP BY lat, lon
@@ -721,14 +732,14 @@ func (r *Repository) GetAnomalies(ctx context.Context) ([]Anomaly, error) {
 		WITH
 			today_data AS (
 				SELECT province, toInt32(count()) AS today_count
-				FROM beacon.traffic_incidents FINAL
+				FROM beacon.traffic_incidents
 				WHERE timestamp >= today()
 				  AND province <> ''
 				GROUP BY province
 			),
 			baseline_data AS (
 				SELECT province, toFloat64(count()) / 7 AS avg_count
-				FROM beacon.traffic_incidents FINAL
+				FROM beacon.traffic_incidents
 				WHERE timestamp >= today() - INTERVAL 7 DAY
 				  AND timestamp < today()
 				  AND province <> ''
@@ -764,14 +775,14 @@ func (r *Repository) GetAnomalies(ctx context.Context) ([]Anomaly, error) {
 		WITH
 			today_data AS (
 				SELECT cause_type, toInt32(count()) AS today_count
-				FROM beacon.traffic_incidents FINAL
+				FROM beacon.traffic_incidents
 				WHERE timestamp >= today()
 				  AND cause_type <> ''
 				GROUP BY cause_type
 			),
 			baseline_data AS (
 				SELECT cause_type, toFloat64(count()) / 7 AS avg_count
-				FROM beacon.traffic_incidents FINAL
+				FROM beacon.traffic_incidents
 				WHERE timestamp >= today() - INTERVAL 7 DAY
 				  AND timestamp < today()
 				  AND cause_type <> ''
