@@ -7,23 +7,21 @@ metadata:
 spec:
   namespace: argocd
   commonUpdateSettings:
-    updateStrategy: semver
-    ignoreTags: 
-      - latest
+    updateStrategy: digest
   applicationRefs:
     - namePattern: api
       images:
         - alias: api
-          imageName: ghcr.io/sverdejot/beacon/api
+          imageName: ghcr.io/sverdejot/beacon/api:latest
     - namePattern: ingester
       images:
         - alias: ingester
-          imageName: ghcr.io/sverdejot/beacon/ingester
+          imageName: ghcr.io/sverdejot/beacon/ingester:latest
     - namePattern: feed
       images:
         - alias: feed
-          imageName: ghcr.io/sverdejot/beacon/feed
+          imageName: ghcr.io/sverdejot/beacon/feed:latest
     - namePattern: dashboard
       images:
         - alias: dashboard
-          imageName: ghcr.io/sverdejot/beacon/dashboard
+          imageName: ghcr.io/sverdejot/beacon/dashboard:latest
