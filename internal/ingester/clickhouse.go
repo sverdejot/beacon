@@ -26,6 +26,11 @@ type ClickHouseClient struct {
 }
 
 func NewClickHouseClient(addr, database, user, password string) (*ClickHouseClient, error) {
+	slog.Debug("creating clickhouse client",
+		slog.String("addr", addr),
+		slog.String("database", database),
+	)
+
 	conn, err := clickhouse.Open(&clickhouse.Options{
 		Addr: []string{addr},
 		Auth: clickhouse.Auth{
@@ -56,10 +61,15 @@ func NewClickHouseClient(addr, database, user, password string) (*ClickHouseClie
 
 	go client.periodicFlush()
 
+	slog.Info("clickhouse client initialized",
+		slog.Int("batch_size", batchSize),
+		slog.Duration("flush_interval", flushInterval),
+	)
+
 	return client, nil
 }
 
-func (c *ClickHouseClient) Insert(inc *Incident) {
+func (c *ClickHouseClient) Insert(ctx context.Context, inc *Incident) {
 	c.batchMu.Lock()
 	c.batch = append(c.batch, *inc)
 	shouldFlush := len(c.batch) >= c.batchSize
@@ -67,11 +77,11 @@ func (c *ClickHouseClient) Insert(inc *Incident) {
 	c.batchMu.Unlock()
 
 	if shouldFlush {
-		c.Flush()
+		c.Flush(ctx)
 	}
 }
 
-func (c *ClickHouseClient) Flush() {
+func (c *ClickHouseClient) Flush(ctx context.Context) {
 	c.batchMu.Lock()
 	if len(c.batch) == 0 {
 		c.batchMu.Unlock()
@@ -87,7 +97,6 @@ func (c *ClickHouseClient) Flush() {
 
 	ClickHouseBatchSize.Observe(float64(len(toInsert)))
 
-	ctx := context.Background()
 	batch, err := c.conn.PrepareBatch(ctx, `
 		INSERT INTO traffic_incidents (
 			id, version, timestamp, end_timestamp, province, record_type,
@@ -98,7 +107,10 @@ func (c *ClickHouseClient) Flush() {
 		)
 	`)
 	if err != nil {
-		slog.Error(fmt.Sprintf("failed to prepare batch: %s", err))
+		slog.ErrorContext(ctx, "failed to prepare clickhouse batch",
+			slog.String("error", err.Error()),
+			slog.Int("batch_size", len(toInsert)),
+		)
 		ClickHouseErrors.WithLabelValues("prepare_batch").Inc()
 		return
 	}
@@ -155,41 +167,58 @@ func (c *ClickHouseClient) Flush() {
 			inc.RoadDestination,
 		)
 		if err != nil {
-			slog.Error(fmt.Sprintf("failed to append to batch: %s", err))
+			slog.ErrorContext(ctx, "failed to append incident to batch",
+				slog.String("incident_id", inc.ID),
+				slog.String("error", err.Error()),
+			)
 			ClickHouseErrors.WithLabelValues("append").Inc()
 		}
 	}
 
 	if err := batch.Send(); err != nil {
-		slog.Error(fmt.Sprintf("failed to send batch: %s", err))
+		slog.ErrorContext(ctx, "failed to send batch to clickhouse",
+			slog.String("error", err.Error()),
+			slog.Int("batch_size", len(toInsert)),
+		)
 		ClickHouseErrors.WithLabelValues("send").Inc()
 		return
 	}
 
 	ClickHouseInserts.Add(float64(len(toInsert)))
-	slog.Info(fmt.Sprintf("inserted %d incidents into clickhouse", len(toInsert)))
+	slog.InfoContext(ctx, "batch inserted to clickhouse", slog.Int("count", len(toInsert)))
 }
 
 func (c *ClickHouseClient) periodicFlush() {
 	ticker := time.NewTicker(c.flushInterval)
 	for range ticker.C {
-		c.Flush()
+		c.Flush(context.Background())
 	}
 }
 
 func (c *ClickHouseClient) Close() error {
-	c.Flush()
+	ctx := context.Background()
+	slog.DebugContext(ctx, "closing clickhouse client, flushing remaining batch")
+	c.Flush(ctx)
 	return c.conn.Close()
 }
 
-func (c *ClickHouseClient) SetEndTimestamp(id string, endTime time.Time) error {
+func (c *ClickHouseClient) SetEndTimestamp(ctx context.Context, id string, endTime time.Time) error {
+	slog.DebugContext(ctx, "setting end timestamp for incident",
+		slog.String("incident_id", id),
+		slog.Time("end_time", endTime),
+	)
+
 	query := `
 		ALTER TABLE traffic_incidents
 		UPDATE end_timestamp = ?
 		WHERE id = ? AND (end_timestamp = toDateTime('1970-01-01 00:00:00') OR end_timestamp > ?)
 	`
-	err := c.conn.Exec(context.Background(), query, endTime, id, endTime)
+	err := c.conn.Exec(ctx, query, endTime, id, endTime)
 	if err != nil {
+		slog.ErrorContext(ctx, "failed to set end timestamp",
+			slog.String("incident_id", id),
+			slog.String("error", err.Error()),
+		)
 		ClickHouseErrors.WithLabelValues("update").Inc()
 	}
 	return err

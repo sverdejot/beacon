@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -20,84 +19,126 @@ import (
 )
 
 func main() {
+	// Configure structured JSON logging for production
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelInfo,
+	}))
+	slog.SetDefault(logger)
+
+	slog.Info("starting ingester service")
+
 	cfg, err := env.ParseAs[config]()
 	if err != nil {
-		slog.Error(fmt.Sprintf("failed to parse config: %s", err))
+		slog.Error("failed to parse config", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
 
+	slog.Info("configuration loaded",
+		slog.String("mqtt_broker", cfg.MQTTBroker),
+		slog.String("clickhouse_addr", cfg.ClickHouseAddr),
+		slog.String("clickhouse_database", cfg.ClickHouseDatabase),
+		slog.String("osrm_url", cfg.OSRMURL),
+		slog.String("redis_addr", cfg.RedisAddr),
+		slog.String("metrics_port", cfg.MetricsPort),
+	)
+
+	// Start metrics server
 	go func() {
 		http.Handle("/metrics", promhttp.Handler())
 		http.HandleFunc("/health", func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte("OK")) //nolint:errcheck
 		})
-		slog.Info(fmt.Sprintf("starting metrics server on :%s", cfg.MetricsPort))
+		slog.Info("starting metrics server", slog.String("port", cfg.MetricsPort))
 		if err := http.ListenAndServe(":"+cfg.MetricsPort, nil); err != nil {
-			slog.Error(fmt.Sprintf("metrics server failed: %s", err))
+			slog.Error("metrics server failed", slog.String("error", err.Error()))
 		}
 	}()
-
-	slog.Info(fmt.Sprintf("connecting to MQTT broker: %s", cfg.MQTTBroker))
-	slog.Info(fmt.Sprintf("connecting to ClickHouse: %s/%s", cfg.ClickHouseAddr, cfg.ClickHouseDatabase))
-	slog.Info(fmt.Sprintf("using OSRM at: %s", cfg.OSRMURL))
-	slog.Info(fmt.Sprintf("using Redis at: %s", cfg.RedisAddr))
 
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
+	// Connect to ClickHouse
+	slog.Info("connecting to clickhouse", slog.String("addr", cfg.ClickHouseAddr))
 	ch, err := ingester.NewClickHouseClient(cfg.ClickHouseAddr, cfg.ClickHouseDatabase, cfg.ClickHouseUser, cfg.ClickHousePassword)
 	if err != nil {
-		slog.Error(fmt.Sprintf("failed to connect to clickhouse: %s", err))
+		slog.Error("failed to connect to clickhouse", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
 	defer ch.Close() //nolint:errcheck
-	slog.Info("connected to ClickHouse")
+	slog.Info("connected to clickhouse")
 
+	// Initialize OSRM
 	routeService := routing.NewRouteService(cfg.OSRMURL)
-	slog.Info("initialized OSRM route service")
+	slog.Info("initialized osrm route service", slog.String("url", cfg.OSRMURL))
 
+	// Connect to Redis/Valkey
+	slog.Info("connecting to redis", slog.String("addr", cfg.RedisAddr))
 	mapCache, err := cache.NewCache(cfg.RedisAddr, cfg.RedisPassword, cfg.RedisDB)
 	if err != nil {
-		slog.Error(fmt.Sprintf("failed to connect to Redis: %s", err))
+		slog.Error("failed to connect to redis", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
-	slog.Info("connected to Redis")
+	slog.Info("connected to redis")
 
+	// Connect to MQTT
+	slog.Info("connecting to mqtt broker", slog.String("broker", cfg.MQTTBroker))
 	opts := mqtt.NewClientOptions().
 		AddBroker(cfg.MQTTBroker).
 		SetClientID("beacon-ingester")
 	client := mqtt.NewClient(opts)
 
 	if tok := client.Connect(); tok.Wait() && tok.Error() != nil {
-		slog.Error(fmt.Sprintf("failed to connect to MQTT broker: %s", tok.Error()))
+		slog.Error("failed to connect to mqtt broker", slog.String("error", tok.Error().Error()))
 		os.Exit(1)
 	}
-	slog.Info("connected to MQTT broker")
+	slog.Info("connected to mqtt broker")
 
 	tok := client.Subscribe("beacon/#", 1, func(c mqtt.Client, m mqtt.Message) {
-		slog.Info(fmt.Sprintf("received message [%d] from topic [%s]", m.MessageID(), m.Topic()))
+		msgCtx := context.Background()
+		topic := m.Topic()
+		msgID := m.MessageID()
 
-		if datex.IsDeletionTopic(m.Topic()) {
+		slog.DebugContext(msgCtx, "received mqtt message",
+			slog.Uint64("message_id", uint64(msgID)),
+			slog.String("topic", topic),
+			slog.Int("payload_size", len(m.Payload())),
+		)
+
+		if datex.IsDeletionTopic(topic) {
 			ingester.MQTTMessagesReceived.WithLabelValues("deletion").Inc()
 
 			var deletion datex.DeletionEvent
 			if err := json.Unmarshal(m.Payload(), &deletion); err != nil {
-				slog.Error(fmt.Sprintf("failed to unmarshal deletion message: %s", err))
+				slog.ErrorContext(msgCtx, "failed to unmarshal deletion message",
+					slog.String("topic", topic),
+					slog.String("error", err.Error()),
+				)
 				ingester.MQTTProcessingErrors.Inc()
 				return
 			}
 
-			if err := mapCache.RemoveMapLocation(context.Background(), deletion.ID); err != nil {
-				slog.Error(fmt.Sprintf("failed to remove location from cache: %s", err))
+			slog.InfoContext(msgCtx, "processing deletion",
+				slog.String("incident_id", deletion.ID),
+				slog.Time("deleted_at", deletion.DeletedAt),
+			)
+
+			if err := mapCache.RemoveMapLocation(msgCtx, deletion.ID); err != nil {
+				slog.ErrorContext(msgCtx, "failed to remove location from cache",
+					slog.String("incident_id", deletion.ID),
+					slog.String("error", err.Error()),
+				)
 			} else {
-				slog.Info(fmt.Sprintf("removed incident %s from cache", deletion.ID))
+				slog.DebugContext(msgCtx, "removed incident from cache", slog.String("incident_id", deletion.ID))
 			}
 
-			if err := ch.SetEndTimestamp(deletion.ID, deletion.DeletedAt); err != nil {
-				slog.Error(fmt.Sprintf("failed to set end timestamp: %s", err))
+			if err := ch.SetEndTimestamp(msgCtx, deletion.ID, deletion.DeletedAt); err != nil {
+				slog.ErrorContext(msgCtx, "failed to set end timestamp in clickhouse",
+					slog.String("incident_id", deletion.ID),
+					slog.String("error", err.Error()),
+				)
 			} else {
-				slog.Info(fmt.Sprintf("marked incident %s as ended in ClickHouse", deletion.ID))
+				slog.DebugContext(msgCtx, "marked incident as ended in clickhouse", slog.String("incident_id", deletion.ID))
 			}
 
 			ingester.DeletionsProcessed.Inc()
@@ -109,37 +150,60 @@ func main() {
 		var record datex.Record
 		rawJSON := string(m.Payload())
 		if err := json.Unmarshal(m.Payload(), &record); err != nil {
-			slog.Error(fmt.Sprintf("failed to unmarshal message: %s", err))
+			slog.ErrorContext(msgCtx, "failed to unmarshal situation message",
+				slog.String("topic", topic),
+				slog.String("error", err.Error()),
+			)
 			ingester.MQTTProcessingErrors.Inc()
 			return
 		}
 
-		eventType := datex.ExtractEventType(m.Topic())
+		eventType := datex.ExtractEventType(topic)
 
-		// compute route with OSRM
+		slog.DebugContext(msgCtx, "processing situation",
+			slog.String("incident_id", record.ID),
+			slog.String("event_type", eventType),
+			slog.String("severity", record.Severity),
+		)
+
+		// Compute route with OSRM
 		loc := shared.RecordToMapLocation(&record, routeService, eventType)
 		if loc != nil {
-			if err := mapCache.StoreMapLocation(context.Background(), loc, record.Validity); err != nil {
-				slog.Error(fmt.Sprintf("failed to store location in cache: %s", err))
+			if err := mapCache.StoreMapLocation(msgCtx, loc, record.Validity); err != nil {
+				slog.ErrorContext(msgCtx, "failed to store location in cache",
+					slog.String("incident_id", record.ID),
+					slog.String("error", err.Error()),
+				)
 			}
 		}
 
-		incident := ingester.RecordToIncidentWithRoute(&record, m.Topic(), rawJSON, loc)
-		ch.Insert(incident)
+		incident := ingester.RecordToIncidentWithRoute(&record, topic, rawJSON, loc)
+		ch.Insert(msgCtx, incident)
+
+		slog.DebugContext(msgCtx, "incident processed",
+			slog.String("incident_id", record.ID),
+			slog.String("province", incident.Province),
+			slog.String("event_type", eventType),
+		)
 	})
 
 	if tok.Wait() && tok.Error() != nil {
-		slog.Error(fmt.Sprintf("failed to subscribe: %s", tok.Error()))
+		slog.Error("failed to subscribe to mqtt topics", slog.String("error", tok.Error().Error()))
 		os.Exit(1)
 	}
-	slog.Info("subscribed to beacon/# topics")
+	slog.Info("subscribed to mqtt topics", slog.String("pattern", "beacon/#"))
 
 	<-ctx.Done()
-	slog.Info("shutting down...")
+	slog.Info("shutdown signal received, stopping services...")
 
 	client.Disconnect(250)
+	slog.Debug("disconnected from mqtt broker")
+
 	mapCache.Close()
+	slog.Debug("closed redis connection")
+
 	ch.Close() //nolint:errcheck
+	slog.Debug("closed clickhouse connection")
 
 	slog.Info("shutdown complete")
 }
