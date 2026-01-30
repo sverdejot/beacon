@@ -41,7 +41,7 @@ class MqttPublisher(
     }
 
     fun publish(record: SituationRecord) {
-        Metrics.mqttPublishTimer.record {
+        Metrics.mqttPublishTimer.record(Runnable {
             try {
                 val region = record.extractProvince().normalizeForTopic()
                 val eventType = record.extractEventType()
@@ -64,7 +64,7 @@ class MqttPublisher(
                     record.id, e.message)
                 throw e
             }
-        }
+        })
     }
 
     fun publishDeletion(id: String, province: String, eventType: String) {
