@@ -1,0 +1,29 @@
+---
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: beacon
+  namespace: argocd
+spec:
+  namespace: argocd
+  commonUpdateSettings:
+    updateStrategy: semver
+    ignoreTags: 
+      - latest
+  applicationRefs:
+    - namePattern: api
+      images:
+        - alias: api
+          imageName: ghcr.io/sverdejot/beacon/api
+    - namePattern: ingester
+      images:
+        - alias: ingester
+          imageName: ghcr.io/sverdejot/beacon/ingester
+    - namePattern: feed
+      images:
+        - alias: feed
+          imageName: ghcr.io/sverdejot/beacon/feed
+    - namePattern: dashboard
+      images:
+        - alias: dashboard
+          imageName: ghcr.io/sverdejot/beacon/dashboard

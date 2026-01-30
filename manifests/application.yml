@@ -22,8 +22,15 @@ spec:
         repoURL: https://github.com/sverdejot/beacon.git
         targetRevision: HEAD
         path: '{{path}}'
-        directory:
-          exclude: 'secret.yml'
+      ignoreDifferences:
+        - group: apps
+          kind: Deployment
+          jsonPointers:
+            - /spec/template/spec/containers/0/image
+        - group: apps
+          kind: StatefulSet
+          jsonPointers:
+            - /spec/template/spec/containers/0/image
       destination:
         server: https://kubernetes.default.svc
         namespace: beacon
