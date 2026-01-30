@@ -19,17 +19,14 @@ jobs:
       - run: mise run routing:customize
       - run: mise run routing:package
 
-      - name: Set release name
-        id: release
+      - id: release
         run: echo "name=$(date +%d/%m/%Y) - Spain OSRM data" >> $GITHUB_OUTPUT
 
-      - name: Delete existing release
-        env:
+      - env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release delete osrm-latest --yes || true
 
-      - name: Delete existing tag
-        run: git push origin :refs/tags/osrm-latest || true
+      - run: git push origin :refs/tags/osrm-latest || true
 
       - uses: softprops/action-gh-release@v2
         with:

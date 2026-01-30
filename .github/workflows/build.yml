@@ -43,15 +43,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+      - uses: docker/build-push-action@v6
         with:
           context: .
           file: ${{ matrix.dockerfile }}
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ env.REGISTRY }}/sverdejot/beacon/${{ matrix.project }}:v${{ steps.version.outputs.version }}
+            ${{ env.REGISTRY }}/sverdejot/beacon/${{ matrix.project }}:${{ steps.version.outputs.version }}
             ${{ env.REGISTRY }}/sverdejot/beacon/${{ matrix.project }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
