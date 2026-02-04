@@ -16,7 +16,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/sverdejot/beacon/internal/cache"
 	"github.com/sverdejot/beacon/internal/shared"
-	"github.com/sverdejot/beacon/internal/ui"
+	"github.com/sverdejot/beacon/internal/api"
 	"github.com/sverdejot/beacon/pkg/datex"
 )
 
@@ -29,10 +29,10 @@ func stream(updateCh chan shared.MapLocation, deleteCh chan string) func(w http.
 			slog.String("user_agent", r.UserAgent()),
 		)
 
-		ui.SSEConnectionsTotal.Inc()
-		ui.SSEConnectionsActive.Inc()
+		api.SSEConnectionsTotal.Inc()
+		api.SSEConnectionsActive.Inc()
 		defer func() {
-			ui.SSEConnectionsActive.Dec()
+			api.SSEConnectionsActive.Dec()
 			slog.DebugContext(ctx, "sse client disconnected", slog.String("client_ip", clientIP))
 		}()
 
@@ -56,7 +56,7 @@ func stream(updateCh chan shared.MapLocation, deleteCh chan string) func(w http.
 				}
 
 				fmt.Fprintf(w, "event: update\ndata: %s\n\n", data) //nolint:errcheck
-				ui.SSEEventsTotal.WithLabelValues("update").Inc()
+				api.SSEEventsTotal.WithLabelValues("update").Inc()
 				err = rc.Flush()
 				if err != nil {
 					slog.DebugContext(ctx, "sse flush failed, client likely disconnected",
@@ -77,7 +77,7 @@ func stream(updateCh chan shared.MapLocation, deleteCh chan string) func(w http.
 				}
 
 				fmt.Fprintf(w, "event: delete\ndata: %s\n\n", data) //nolint:errcheck
-				ui.SSEEventsTotal.WithLabelValues("delete").Inc()
+				api.SSEEventsTotal.WithLabelValues("delete").Inc()
 				err = rc.Flush()
 				if err != nil {
 					slog.DebugContext(ctx, "sse flush failed, client likely disconnected",
@@ -126,13 +126,12 @@ func metricsMiddleware(next http.Handler) http.Handler {
 		method := r.Method
 		status := strconv.Itoa(rw.statusCode)
 
-		ui.HTTPRequestsTotal.WithLabelValues(method, endpoint, status).Inc()
-		ui.HTTPRequestDuration.WithLabelValues(method, endpoint).Observe(duration)
+		api.HTTPRequestsTotal.WithLabelValues(method, endpoint, status).Inc()
+		api.HTTPRequestDuration.WithLabelValues(method, endpoint).Observe(duration)
 	})
 }
 
 func main() {
-	// Configure structured JSON logging for production
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level: slog.LevelInfo,
 	}))
@@ -154,7 +153,6 @@ func main() {
 		slog.String("redis_addr", cfg.RedisAddr),
 	)
 
-	// Start metrics server
 	go func() {
 		metricsMux := http.NewServeMux()
 		metricsMux.Handle("/metrics", promhttp.Handler())
@@ -171,17 +169,14 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	// Connect to ClickHouse
 	slog.Info("connecting to clickhouse", slog.String("addr", cfg.ClickHouseAddr))
-	dashboardRepo, err := ui.NewRepository(cfg.ClickHouseAddr, cfg.ClickHouseDatabase, cfg.ClickHouseUser, cfg.ClickHousePassword)
+	dashboardRepo, err := api.NewRepository(cfg.ClickHouseAddr, cfg.ClickHouseDatabase, cfg.ClickHouseUser, cfg.ClickHousePassword)
 	if err != nil {
 		slog.Error("failed to connect to clickhouse", slog.String("error", err.Error()))
 		os.Exit(1)
 	}
 	slog.Info("connected to clickhouse")
-	dashboardHandler := ui.NewHandler(dashboardRepo)
 
-	// Connect to Redis/Valkey
 	slog.Info("connecting to redis", slog.String("addr", cfg.RedisAddr))
 	mapCache, err := cache.NewCache(cfg.RedisAddr, cfg.RedisPassword, cfg.RedisDB)
 	if err != nil {
@@ -190,7 +185,8 @@ func main() {
 	}
 	slog.Info("connected to redis")
 
-	// Connect to MQTT
+	dashboardHandler := api.NewHandler(dashboardRepo, mapCache)
+
 	slog.Info("connecting to mqtt broker", slog.String("broker", cfg.MQTTBroker))
 	opts := mqtt.NewClientOptions().
 		AddBroker(cfg.MQTTBroker)
@@ -248,7 +244,7 @@ func main() {
 func mapIncidents(mapCache *cache.Cache) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		ui.MapIncidentsRequests.Inc()
+		api.MapIncidentsRequests.Inc()
 
 		locations, err := mapCache.GetAllMapLocations(ctx)
 		if err != nil {
@@ -258,7 +254,7 @@ func mapIncidents(mapCache *cache.Cache) http.HandlerFunc {
 			return
 		}
 
-		ui.MapIncidentsCount.Set(float64(len(locations)))
+		api.MapIncidentsCount.Set(float64(len(locations)))
 		slog.DebugContext(ctx, "serving map incidents", slog.Int("count", len(locations)))
 
 		w.Header().Set("Content-Type", "application/json")
@@ -273,7 +269,7 @@ func locationStream(client mqtt.Client, mapCache *cache.Cache) (chan shared.MapL
 	tok := client.Subscribe("beacon/+/+/situations/#", 0, func(c mqtt.Client, m mqtt.Message) {
 		ctx := context.Background()
 		topic := m.Topic()
-		ui.MQTTStreamMessagesTotal.WithLabelValues("update").Inc()
+		api.MQTTStreamMessagesTotal.WithLabelValues("update").Inc()
 
 		slog.DebugContext(ctx, "received situation update for streaming",
 			slog.Uint64("message_id", uint64(m.MessageID())),
@@ -291,7 +287,6 @@ func locationStream(client mqtt.Client, mapCache *cache.Cache) (chan shared.MapL
 
 		loc, err := mapCache.GetMapLocation(ctx, record.ID)
 		if err != nil {
-			// Ingester hasn't stored yet, retry after small delay
 			slog.DebugContext(ctx, "cache miss, retrying after delay", slog.String("incident_id", record.ID))
 			time.Sleep(100 * time.Millisecond)
 			loc, err = mapCache.GetMapLocation(ctx, record.ID)
@@ -313,7 +308,7 @@ func locationStream(client mqtt.Client, mapCache *cache.Cache) (chan shared.MapL
 	tok = client.Subscribe("beacon/+/+/deletions/#", 0, func(c mqtt.Client, m mqtt.Message) {
 		ctx := context.Background()
 		topic := m.Topic()
-		ui.MQTTStreamMessagesTotal.WithLabelValues("deletion").Inc()
+		api.MQTTStreamMessagesTotal.WithLabelValues("deletion").Inc()
 
 		slog.DebugContext(ctx, "received deletion for streaming",
 			slog.Uint64("message_id", uint64(m.MessageID())),

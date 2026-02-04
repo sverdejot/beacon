@@ -175,6 +175,30 @@ func (c *Cache) GetAllMapLocations(ctx context.Context) ([]shared.MapLocation, e
 	return locations, nil
 }
 
+func (c *Cache) GetActiveCount(ctx context.Context) (int64, error) {
+	timer := prometheus.NewTimer(CacheOperationDuration.WithLabelValues("count"))
+	defer timer.ObserveDuration()
+
+	// Clean up expired first to get accurate count
+	if err := c.cleanupExpired(ctx); err != nil {
+		slog.Warn(fmt.Sprintf("failed to cleanup expired incidents: %v", err))
+	}
+
+	req := c.client.B().
+		Hlen().
+		Key(mapIncidentsKey).
+		Build()
+
+	count, err := c.client.Do(ctx, req).AsInt64()
+	if err != nil {
+		CacheOperations.WithLabelValues("count", "error").Inc()
+		return 0, fmt.Errorf("failed to get active count: %w", err)
+	}
+
+	CacheOperations.WithLabelValues("count", "success").Inc()
+	return count, nil
+}
+
 func (c *Cache) calculateTTL(validity *datex.Validity) time.Duration {
 	if validity == nil || validity.EndTime == nil {
 		return defaultTTL

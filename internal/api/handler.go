@@ -1,4 +1,4 @@
-package ui
+package api
 
 import (
 	"context"
@@ -10,12 +10,18 @@ import (
 	"time"
 )
 
-type Handler struct {
-	repo *Repository
+// ActiveCounter provides the count of active incidents from cache.
+type ActiveCounter interface {
+	GetActiveCount(ctx context.Context) (int64, error)
 }
 
-func NewHandler(repo *Repository) *Handler {
-	return &Handler{repo: repo}
+type Handler struct {
+	repo  *Repository
+	cache ActiveCounter
+}
+
+func NewHandler(repo *Repository, cache ActiveCounter) *Handler {
+	return &Handler{repo: repo, cache: cache}
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
@@ -59,6 +65,17 @@ func (h *Handler) handleSummary(w http.ResponseWriter, r *http.Request) {
 		h.writeError(w, "failed to get summary", http.StatusInternalServerError)
 		return
 	}
+
+	// Override active count from Valkey (source of truth for live data)
+	if h.cache != nil {
+		count, err := h.cache.GetActiveCount(r.Context())
+		if err != nil {
+			slog.Warn(fmt.Sprintf("failed to get active count from cache, using clickhouse: %s", err))
+		} else {
+			summary.ActiveIncidents = int32(count)
+		}
+	}
+
 	h.writeJSON(w, summary)
 }
 
@@ -203,6 +220,16 @@ func (h *Handler) sendSummaryEvent(ctx context.Context, w http.ResponseWriter, r
 	summary, err := h.repo.GetSummary(ctx)
 	if err != nil {
 		return err
+	}
+
+	// Override active count from Valkey (source of truth for live data)
+	if h.cache != nil {
+		count, err := h.cache.GetActiveCount(ctx)
+		if err != nil {
+			slog.Warn(fmt.Sprintf("failed to get active count from cache: %s", err))
+		} else {
+			summary.ActiveIncidents = int32(count)
+		}
 	}
 
 	data, err := json.Marshal(summary)
