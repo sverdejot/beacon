@@ -194,7 +194,6 @@ func (h *Handler) handleSSE(w http.ResponseWriter, r *http.Request) {
 
 	rc := http.NewResponseController(w)
 
-	// Send initial summary
 	if err := h.sendSummaryEvent(r.Context(), w, rc); err != nil {
 		slog.Error(fmt.Sprintf("failed to send initial summary: %s", err))
 		return
