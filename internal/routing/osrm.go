@@ -3,6 +3,7 @@ package routing
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -65,18 +66,27 @@ func (rs *RouteService) GetRouteWithDistance(from, to datex.Coordinates) RouteRe
 
 	resp, err := rs.client.Get(url)
 	if err != nil {
+		slog.Error("osrm route computation failed", slog.String("error", err.Error()))
 		OSRMRequests.WithLabelValues("error").Inc()
 		return fallback
 	}
 	defer resp.Body.Close() //nolint:errcheck
 
+	if resp.StatusCode != http.StatusOK {
+		slog.Error("osrm route computation failed", slog.Int("status_code", resp.StatusCode))
+		OSRMRequests.WithLabelValues("error").Inc()
+		return fallback
+	}
+
 	var osrm osrmResponse
 	if err := json.NewDecoder(resp.Body).Decode(&osrm); err != nil {
+		slog.Error("osrm route computation failed", slog.String("error", err.Error()))
 		OSRMRequests.WithLabelValues("error").Inc()
 		return fallback
 	}
 
 	if len(osrm.Routes) == 0 {
+		slog.Error("osrm route computation failed", slog.String("reason", "no_routes_returned"))
 		OSRMRequests.WithLabelValues("fallback").Inc()
 		return fallback
 	}
