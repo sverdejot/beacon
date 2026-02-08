@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 
 	"github.com/caarlos0/env/v11"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -94,97 +95,48 @@ func main() {
 	}
 	slog.Info("connected to mqtt broker")
 
+	// Worker pool for non-blocking MQTT message processing
+	const workerCount = 8
+	const queueSize = 1024
+
+	type mqttMsg struct {
+		topic   string
+		payload []byte
+	}
+
+	workCh := make(chan mqttMsg, queueSize)
+
+	// Start workers
+	var wg sync.WaitGroup
+	for i := range workerCount {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			slog.Debug("worker started", slog.Int("worker_id", id))
+			for msg := range workCh {
+				ingester.WorkerPoolQueueSize.Set(float64(len(workCh)))
+				processMessage(msg.topic, msg.payload, ch, mapCache, routeService)
+			}
+			slog.Debug("worker stopped", slog.Int("worker_id", id))
+		}(i)
+	}
+
 	tok := client.Subscribe("beacon/#", 1, func(c mqtt.Client, m mqtt.Message) {
-		msgCtx := context.Background()
-		topic := m.Topic()
-		msgID := m.MessageID()
+		msg := mqttMsg{
+			topic:   m.Topic(),
+			payload: make([]byte, len(m.Payload())),
+		}
+		copy(msg.payload, m.Payload())
 
-		slog.DebugContext(msgCtx, "received mqtt message",
-			slog.Uint64("message_id", uint64(msgID)),
-			slog.String("topic", topic),
-			slog.Int("payload_size", len(m.Payload())),
-		)
-
-		if datex.IsDeletionTopic(topic) {
-			ingester.MQTTMessagesReceived.WithLabelValues("deletion").Inc()
-
-			var deletion datex.DeletionEvent
-			if err := json.Unmarshal(m.Payload(), &deletion); err != nil {
-				slog.ErrorContext(msgCtx, "failed to unmarshal deletion message",
-					slog.String("topic", topic),
-					slog.String("error", err.Error()),
-				)
-				ingester.MQTTProcessingErrors.Inc()
-				return
-			}
-
-			slog.InfoContext(msgCtx, "processing deletion",
-				slog.String("incident_id", deletion.ID),
-				slog.Time("deleted_at", deletion.DeletedAt),
+		select {
+		case workCh <- msg:
+			ingester.WorkerPoolQueueSize.Set(float64(len(workCh)))
+		default:
+			ingester.WorkerPoolDropped.Inc()
+			slog.Warn("worker pool full, dropping message",
+				slog.String("topic", msg.topic),
 			)
-
-			if err := mapCache.RemoveMapLocation(msgCtx, deletion.ID); err != nil {
-				slog.ErrorContext(msgCtx, "failed to remove location from cache",
-					slog.String("incident_id", deletion.ID),
-					slog.String("error", err.Error()),
-				)
-			} else {
-				slog.DebugContext(msgCtx, "removed incident from cache", slog.String("incident_id", deletion.ID))
-			}
-
-			if err := ch.SetEndTimestamp(msgCtx, deletion.ID, deletion.DeletedAt); err != nil {
-				slog.ErrorContext(msgCtx, "failed to set end timestamp in clickhouse",
-					slog.String("incident_id", deletion.ID),
-					slog.String("error", err.Error()),
-				)
-			} else {
-				slog.DebugContext(msgCtx, "marked incident as ended in clickhouse", slog.String("incident_id", deletion.ID))
-			}
-
-			ingester.DeletionsProcessed.Inc()
-			return
 		}
-
-		ingester.MQTTMessagesReceived.WithLabelValues("situation").Inc()
-
-		var record datex.Record
-		rawJSON := string(m.Payload())
-		if err := json.Unmarshal(m.Payload(), &record); err != nil {
-			slog.ErrorContext(msgCtx, "failed to unmarshal situation message",
-				slog.String("topic", topic),
-				slog.String("error", err.Error()),
-			)
-			ingester.MQTTProcessingErrors.Inc()
-			return
-		}
-
-		eventType := datex.ExtractEventType(topic)
-
-		slog.DebugContext(msgCtx, "processing situation",
-			slog.String("incident_id", record.ID),
-			slog.String("event_type", eventType),
-			slog.String("severity", record.Severity),
-		)
-
-		// Compute route with OSRM
-		loc := shared.RecordToMapLocation(&record, routeService, eventType)
-		if loc != nil {
-			if err := mapCache.StoreMapLocation(msgCtx, loc, record.Validity); err != nil {
-				slog.ErrorContext(msgCtx, "failed to store location in cache",
-					slog.String("incident_id", record.ID),
-					slog.String("error", err.Error()),
-				)
-			}
-		}
-
-		incident := ingester.RecordToIncidentWithRoute(&record, topic, rawJSON, loc)
-		ch.Insert(msgCtx, incident)
-
-		slog.DebugContext(msgCtx, "incident processed",
-			slog.String("incident_id", record.ID),
-			slog.String("province", incident.Province),
-			slog.String("event_type", eventType),
-		)
 	})
 
 	if tok.Wait() && tok.Error() != nil {
@@ -199,6 +151,10 @@ func main() {
 	client.Disconnect(250)
 	slog.Debug("disconnected from mqtt broker")
 
+	close(workCh)
+	wg.Wait()
+	slog.Debug("worker pool drained")
+
 	mapCache.Close()
 	slog.Debug("closed redis connection")
 
@@ -206,4 +162,93 @@ func main() {
 	slog.Debug("closed clickhouse connection")
 
 	slog.Info("shutdown complete")
+}
+
+func processMessage(topic string, payload []byte, ch *ingester.ClickHouseClient, mapCache *cache.Cache, routeService *routing.RouteService) {
+	msgCtx := context.Background()
+
+	slog.Debug("processing mqtt message",
+		slog.String("topic", topic),
+		slog.Int("payload_size", len(payload)),
+	)
+
+	if datex.IsDeletionTopic(topic) {
+		ingester.MQTTMessagesReceived.WithLabelValues("deletion").Inc()
+
+		var deletion datex.DeletionEvent
+		if err := json.Unmarshal(payload, &deletion); err != nil {
+			slog.Error("failed to unmarshal deletion message",
+				slog.String("topic", topic),
+				slog.String("error", err.Error()),
+			)
+			ingester.MQTTProcessingErrors.Inc()
+			return
+		}
+
+		slog.Info("processing deletion",
+			slog.String("incident_id", deletion.ID),
+			slog.Time("deleted_at", deletion.DeletedAt),
+		)
+
+		if err := mapCache.RemoveMapLocation(msgCtx, deletion.ID); err != nil {
+			slog.Error("failed to remove location from cache",
+				slog.String("incident_id", deletion.ID),
+				slog.String("error", err.Error()),
+			)
+		} else {
+			slog.Debug("removed incident from cache", slog.String("incident_id", deletion.ID))
+		}
+
+		if err := ch.SetEndTimestamp(msgCtx, deletion.ID, deletion.DeletedAt); err != nil {
+			slog.Error("failed to set end timestamp in clickhouse",
+				slog.String("incident_id", deletion.ID),
+				slog.String("error", err.Error()),
+			)
+		} else {
+			slog.Debug("marked incident as ended in clickhouse", slog.String("incident_id", deletion.ID))
+		}
+
+		ingester.DeletionsProcessed.Inc()
+		return
+	}
+
+	ingester.MQTTMessagesReceived.WithLabelValues("situation").Inc()
+
+	var record datex.Record
+	rawJSON := string(payload)
+	if err := json.Unmarshal(payload, &record); err != nil {
+		slog.Error("failed to unmarshal situation message",
+			slog.String("topic", topic),
+			slog.String("error", err.Error()),
+		)
+		ingester.MQTTProcessingErrors.Inc()
+		return
+	}
+
+	eventType := datex.ExtractEventType(topic)
+
+	slog.Debug("processing situation",
+		slog.String("incident_id", record.ID),
+		slog.String("event_type", eventType),
+		slog.String("severity", record.Severity),
+	)
+
+	loc := shared.RecordToMapLocation(&record, routeService, eventType)
+	if loc != nil {
+		if err := mapCache.StoreMapLocation(msgCtx, loc, record.Validity); err != nil {
+			slog.Error("failed to store location in cache",
+				slog.String("incident_id", record.ID),
+				slog.String("error", err.Error()),
+			)
+		}
+	}
+
+	incident := ingester.RecordToIncidentWithRoute(&record, topic, rawJSON, loc)
+	ch.Insert(msgCtx, incident)
+
+	slog.Debug("incident processed",
+		slog.String("incident_id", record.ID),
+		slog.String("province", incident.Province),
+		slog.String("event_type", eventType),
+	)
 }

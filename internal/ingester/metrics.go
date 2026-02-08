@@ -52,4 +52,15 @@ var (
 		Name: metricsPrefix + "_deletions_processed_total",
 		Help: "Total number of deletion events processed",
 	})
+
+	// Worker pool metrics
+	WorkerPoolDropped = promauto.NewCounter(prometheus.CounterOpts{
+		Name: metricsPrefix + "_worker_pool_dropped_total",
+		Help: "Total number of messages dropped due to full worker pool",
+	})
+
+	WorkerPoolQueueSize = promauto.NewGauge(prometheus.GaugeOpts{
+		Name: metricsPrefix + "_worker_pool_queue_size",
+		Help: "Current number of messages in the worker pool queue",
+	})
 )
