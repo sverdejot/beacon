@@ -50,6 +50,11 @@ func (c *Cache) Close() {
 	c.client.Close()
 }
 
+func (c *Cache) Ping(ctx context.Context) error {
+	req := c.client.B().Ping().Build()
+	return c.client.Do(ctx, req).Error()
+}
+
 func (c *Cache) StoreMapLocation(ctx context.Context, loc *shared.MapLocation, validity *datex.Validity) error {
 	timer := prometheus.NewTimer(CacheOperationDuration.WithLabelValues("store"))
 	defer timer.ObserveDuration()

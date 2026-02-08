@@ -59,4 +59,9 @@ var (
 		Name: metricsPrefix + "_mqtt_stream_messages_total",
 		Help: "Total number of MQTT messages processed for streaming",
 	}, []string{"type"}) // type: update, deletion
+
+	SSEEventsDropped = promauto.NewCounter(prometheus.CounterOpts{
+		Name: metricsPrefix + "_sse_events_dropped_total",
+		Help: "Total number of SSE events dropped due to slow consumers",
+	})
 )

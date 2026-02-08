@@ -49,6 +49,10 @@ func (r *Repository) Close() error {
 	return r.conn.Close()
 }
 
+func (r *Repository) Ping(ctx context.Context) error {
+	return r.conn.Ping(ctx)
+}
+
 func (r *Repository) observeQuery(queryName string) func() {
 	timer := prometheus.NewTimer(ClickHouseQueryDuration.WithLabelValues(queryName))
 	return func() {

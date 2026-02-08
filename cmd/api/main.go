@@ -41,10 +41,22 @@ func stream(updateCh chan shared.MapLocation, deleteCh chan string) func(w http.
 		w.Header().Set("Connection", "keep-alive")
 
 		rc := http.NewResponseController(w)
+		keepalive := time.NewTicker(15 * time.Second)
+		defer keepalive.Stop()
+
 		for {
 			select {
 			case <-ctx.Done():
 				return
+			case <-keepalive.C:
+				fmt.Fprint(w, ":keepalive\n\n") //nolint:errcheck
+				if err := rc.Flush(); err != nil {
+					slog.DebugContext(ctx, "sse keepalive flush failed",
+						slog.String("client_ip", clientIP),
+						slog.String("error", err.Error()),
+					)
+					return
+				}
 			case loc := <-updateCh:
 				data, err := json.Marshal(loc)
 				if err != nil {
@@ -91,17 +103,35 @@ func stream(updateCh chan shared.MapLocation, deleteCh chan string) func(w http.
 	}
 }
 
-func cors(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
+func timeoutMiddleware(timeout time.Duration) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Skip timeout for SSE endpoints (long-lived connections)
+			if r.URL.Path == "/sse" || r.URL.Path == "/sse/dashboard" {
+				next.ServeHTTP(w, r)
+				return
+			}
+			http.TimeoutHandler(next, timeout, `{"error":"request timeout"}`).ServeHTTP(w, r)
+		})
+	}
+}
+
+func cors(origin string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+			if origin != "*" {
+				w.Header().Set("Vary", "Origin")
+			}
+			if r.Method == "OPTIONS" {
+				w.WriteHeader(http.StatusOK)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
 }
 
 type responseWriter struct {
@@ -157,19 +187,6 @@ func main() {
 		slog.String("redis_addr", cfg.RedisAddr),
 	)
 
-	go func() {
-		metricsMux := http.NewServeMux()
-		metricsMux.Handle("/metrics", promhttp.Handler())
-		metricsMux.HandleFunc("/health", func(w http.ResponseWriter, _ *http.Request) {
-			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("OK")) //nolint:errcheck
-		})
-		slog.Info("starting metrics server", slog.String("port", cfg.MetricsPort))
-		if err := http.ListenAndServe(":"+cfg.MetricsPort, metricsMux); err != nil {
-			slog.Error("metrics server failed", slog.String("error", err.Error()))
-		}
-	}()
-
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
@@ -188,6 +205,38 @@ func main() {
 		os.Exit(1)
 	}
 	slog.Info("connected to redis")
+
+	go func() {
+		metricsMux := http.NewServeMux()
+		metricsMux.Handle("/metrics", promhttp.Handler())
+		metricsMux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("OK")) //nolint:errcheck
+		})
+		metricsMux.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
+			checkCtx, checkCancel := context.WithTimeout(r.Context(), 3*time.Second)
+			defer checkCancel()
+
+			if err := dashboardRepo.Ping(checkCtx); err != nil {
+				slog.Warn("readiness check failed: clickhouse", slog.String("error", err.Error()))
+				w.WriteHeader(http.StatusServiceUnavailable)
+				w.Write([]byte("clickhouse: " + err.Error())) //nolint:errcheck
+				return
+			}
+			if err := mapCache.Ping(checkCtx); err != nil {
+				slog.Warn("readiness check failed: valkey", slog.String("error", err.Error()))
+				w.WriteHeader(http.StatusServiceUnavailable)
+				w.Write([]byte("valkey: " + err.Error())) //nolint:errcheck
+				return
+			}
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("OK")) //nolint:errcheck
+		})
+		slog.Info("starting metrics server", slog.String("port", cfg.MetricsPort))
+		if err := http.ListenAndServe(":"+cfg.MetricsPort, metricsMux); err != nil {
+			slog.Error("metrics server failed", slog.String("error", err.Error()))
+		}
+	}()
 
 	dashboardHandler := api.NewHandler(dashboardRepo, mapCache)
 
@@ -211,7 +260,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:    ":" + cfg.HTTPPort,
-		Handler: metricsMiddleware(cors(mux)),
+		Handler: metricsMiddleware(cors(cfg.CORSOrigin)(timeoutMiddleware(30 * time.Second)(mux))),
 	}
 
 	go func() {
@@ -304,7 +353,14 @@ func locationStream(client mqtt.Client, mapCache *cache.Cache) (chan shared.MapL
 			return
 		}
 
-		updateCh <- *loc
+		select {
+		case updateCh <- *loc:
+		default:
+			api.SSEEventsDropped.Inc()
+			slog.Warn("sse update channel full, dropping event",
+				slog.String("incident_id", record.ID),
+			)
+		}
 	})
 	tok.Wait()
 	slog.Info("subscribed to situation updates", slog.String("pattern", "beacon/+/+/situations/#"))
@@ -328,7 +384,14 @@ func locationStream(client mqtt.Client, mapCache *cache.Cache) (chan shared.MapL
 			return
 		}
 
-		deleteCh <- deletion.ID
+		select {
+		case deleteCh <- deletion.ID:
+		default:
+			api.SSEEventsDropped.Inc()
+			slog.Warn("sse delete channel full, dropping event",
+				slog.String("incident_id", deletion.ID),
+			)
+		}
 	})
 	tok.Wait()
 	slog.Info("subscribed to deletions", slog.String("pattern", "beacon/+/+/deletions/#"))
