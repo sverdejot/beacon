@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { initI18n, type SupportedLang } from '../../i18n';
 import { AppLayout } from '../AppLayout';
 import { useDashboardData } from '../../hooks/useDashboardData';
+import { useDashboard } from '../../context/DashboardContext';
 import { TopRoadsTable } from '../TopRoadsTable';
 import { TopSubtypesTable } from '../TopSubtypesTable';
 import { SkeletonTable } from '../Skeleton';
@@ -23,7 +24,8 @@ export function RoadsPage({ currentPath, lang }: RoadsPageProps) {
 
 function RoadsContent() {
   const { t } = useTranslation();
-  const data = useDashboardData();
+  const { timeRange, filters } = useDashboard();
+  const data = useDashboardData(timeRange, filters);
 
   if (data.loading) {
     return (

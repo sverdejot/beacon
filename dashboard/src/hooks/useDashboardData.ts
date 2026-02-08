@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import * as api from '../lib/api';
+import type { QueryParams } from '../lib/api';
 import type {
   Summary,
   HourlyDataPoint,
@@ -17,6 +18,7 @@ import type {
   Hotspot,
   Anomaly,
 } from '../lib/types';
+import type { Filter } from '../context/DashboardContext';
 
 interface DashboardData {
   summary: Summary | null;
@@ -40,7 +42,30 @@ interface DashboardData {
   error: string | null;
 }
 
-export function useDashboardData() {
+function filtersToParams(timeRange: string, filters: Filter[]): QueryParams {
+  const params: QueryParams = { timeRange };
+
+  for (const filter of filters) {
+    switch (filter.type) {
+      case 'province':
+        params.province = filter.value;
+        break;
+      case 'severity':
+        params.severity = filter.value;
+        break;
+      case 'cause':
+        params.cause = filter.value;
+        break;
+      case 'road':
+        params.road = filter.value;
+        break;
+    }
+  }
+
+  return params;
+}
+
+export function useDashboardData(timeRange = '7d', filters: Filter[] = []) {
   const [data, setData] = useState<DashboardData>({
     summary: null,
     hourlyTrend: [],
@@ -64,6 +89,8 @@ export function useDashboardData() {
   });
 
   const fetchAll = useCallback(async () => {
+    const params = filtersToParams(timeRange, filters);
+
     try {
       const [
         summary,
@@ -85,23 +112,23 @@ export function useDashboardData() {
         hotspotsRes,
         anomaliesRes,
       ] = await Promise.all([
-        api.getSummary(),
-        api.getHourlyTrend(),
-        api.getDailyTrend(),
-        api.getSeverityDistribution(),
-        api.getCauseTypeDistribution(),
-        api.getProvinceDistribution(),
-        api.getTopRoads(),
-        api.getTopSubtypes(),
-        api.getHeatmapData(),
-        api.getActiveIncidents(),
-        api.getImpactSummary(),
-        api.getDurationDistribution(),
-        api.getRouteAnalysis(),
-        api.getDirectionAnalysis(),
-        api.getRushHourComparison(),
-        api.getHotspots(),
-        api.getAnomalies(),
+        api.getSummary(params),
+        api.getHourlyTrend(params),
+        api.getDailyTrend(params),
+        api.getSeverityDistribution(params),
+        api.getCauseTypeDistribution(params),
+        api.getProvinceDistribution(params),
+        api.getTopRoads(10, params),
+        api.getTopSubtypes(20, params),
+        api.getHeatmapData(params),
+        api.getActiveIncidents(params),
+        api.getImpactSummary(params),
+        api.getDurationDistribution(params),
+        api.getRouteAnalysis(20, params),
+        api.getDirectionAnalysis(params),
+        api.getRushHourComparison(params),
+        api.getHotspots(50, params),
+        api.getAnomalies(params),
       ]);
 
       setData({
@@ -132,7 +159,7 @@ export function useDashboardData() {
         error: err instanceof Error ? err.message : 'Failed to fetch data',
       }));
     }
-  }, []);
+  }, [timeRange, filters]);
 
   useEffect(() => {
     fetchAll();

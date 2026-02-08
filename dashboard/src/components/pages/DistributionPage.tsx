@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { initI18n, type SupportedLang } from '../../i18n';
 import { AppLayout } from '../AppLayout';
 import { useDashboardData } from '../../hooks/useDashboardData';
+import { useDashboard } from '../../context/DashboardContext';
 import { SeverityDonut } from '../SeverityDonut';
 import { CauseTypeChart } from '../CauseTypeChart';
 import { ProvinceChart } from '../ProvinceChart';
@@ -24,7 +25,8 @@ export function DistributionPage({ currentPath, lang }: DistributionPageProps) {
 
 function DistributionContent() {
   const { t } = useTranslation();
-  const data = useDashboardData();
+  const { timeRange, filters } = useDashboard();
+  const data = useDashboardData(timeRange, filters);
 
   if (data.loading) {
     return (

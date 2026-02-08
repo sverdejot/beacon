@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { initI18n, type SupportedLang } from '../../i18n';
 import { AppLayout } from '../AppLayout';
 import { useDashboardData } from '../../hooks/useDashboardData';
+import { useDashboard } from '../../context/DashboardContext';
 import { useSSE } from '../../hooks/useSSE';
 import { SummaryCards } from '../SummaryCards';
 import { LiveMap } from '../LiveMap';
@@ -35,7 +36,8 @@ export function OverviewPage({ currentPath, lang }: OverviewPageProps) {
 
 function OverviewContent() {
   const { t } = useTranslation();
-  const data = useDashboardData();
+  const { timeRange, filters } = useDashboard();
+  const data = useDashboardData(timeRange, filters);
   const sse = useSSE();
 
   // Prefer SSE summary for real-time updates, fall back to API data

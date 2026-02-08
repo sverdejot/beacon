@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { initI18n, type SupportedLang } from '../../i18n';
 import { AppLayout } from '../AppLayout';
 import { useDashboardData } from '../../hooks/useDashboardData';
+import { useDashboard } from '../../context/DashboardContext';
 import { IncidentHeatmap } from '../IncidentHeatmap';
 
 interface HeatmapPageProps {
@@ -21,7 +22,8 @@ export function HeatmapPage({ currentPath, lang }: HeatmapPageProps) {
 
 function HeatmapContent() {
   const { t } = useTranslation();
-  const data = useDashboardData();
+  const { timeRange, filters } = useDashboard();
+  const data = useDashboardData(timeRange, filters);
 
   if (data.loading) {
     return (

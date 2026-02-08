@@ -1,4 +1,5 @@
 import { useDashboardData } from '../hooks/useDashboardData';
+import { useDashboard } from '../context/DashboardContext';
 import { useSSE } from '../hooks/useSSE';
 import { SummaryCards } from './SummaryCards';
 import { HourlyTrendChart } from './HourlyTrendChart';
@@ -20,7 +21,8 @@ import { HotspotsMap } from './HotspotsMap';
 import { AnomaliesPanel } from './AnomaliesPanel';
 
 export default function Dashboard() {
-  const data = useDashboardData();
+  const { timeRange, filters } = useDashboard();
+  const data = useDashboardData(timeRange, filters);
   const sse = useSSE();
 
   // Prefer SSE summary for real-time updates, fall back to API data
