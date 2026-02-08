@@ -23,6 +23,8 @@ type ClickHouseClient struct {
 	batchMu       sync.Mutex
 	batchSize     int
 	flushInterval time.Duration
+	cancel        context.CancelFunc
+	done          chan struct{}
 }
 
 func NewClickHouseClient(addr, database, user, password string) (*ClickHouseClient, error) {
@@ -52,14 +54,17 @@ func NewClickHouseClient(addr, database, user, password string) (*ClickHouseClie
 		return nil, fmt.Errorf("failed to ping clickhouse: %w", err)
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
 	client := &ClickHouseClient{
 		conn:          conn,
 		batch:         make([]Incident, 0, batchSize),
 		batchSize:     batchSize,
 		flushInterval: flushInterval,
+		cancel:        cancel,
+		done:          make(chan struct{}),
 	}
 
-	go client.periodicFlush()
+	go client.periodicFlush(ctx)
 
 	slog.Info("clickhouse client initialized",
 		slog.Int("batch_size", batchSize),
@@ -188,17 +193,26 @@ func (c *ClickHouseClient) Flush(ctx context.Context) {
 	slog.InfoContext(ctx, "batch inserted to clickhouse", slog.Int("count", len(toInsert)))
 }
 
-func (c *ClickHouseClient) periodicFlush() {
+func (c *ClickHouseClient) periodicFlush(ctx context.Context) {
+	defer close(c.done)
 	ticker := time.NewTicker(c.flushInterval)
-	for range ticker.C {
-		c.Flush(context.Background())
+	defer ticker.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			c.Flush(context.Background())
+		}
 	}
 }
 
 func (c *ClickHouseClient) Close() error {
-	ctx := context.Background()
-	slog.DebugContext(ctx, "closing clickhouse client, flushing remaining batch")
-	c.Flush(ctx)
+	slog.Debug("closing clickhouse client, stopping periodic flush")
+	c.cancel()
+	<-c.done
+	slog.Debug("periodic flush stopped, flushing remaining batch")
+	c.Flush(context.Background())
 	return c.conn.Close()
 }
 
