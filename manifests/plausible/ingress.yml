@@ -1,0 +1,25 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: plausible
+  namespace: beacon
+  labels:
+    app: plausible
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - analytics.sverdejot.dev
+      secretName: plausible-tls
+  rules:
+    - host: analytics.sverdejot.dev
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: plausible
+                port:
+                  number: 8000
