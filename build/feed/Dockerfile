@@ -12,6 +12,8 @@ COPY feed/app/src/ ./app/src/
 RUN ./gradlew :app:installDist --no-daemon
 
 FROM ghcr.io/graalvm/graalvm-community:21
+RUN groupadd -r appgroup && useradd -r -g appgroup appuser
 WORKDIR /app
 COPY --from=builder /app/app/build/install/app/ ./
+USER appuser
 ENTRYPOINT ["sh", "-c", "java -cp \"lib/*\" org.beacon.FeedKt"]
