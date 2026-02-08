@@ -122,8 +122,14 @@ export function LiveMap({ fullHeight = false }: LiveMapProps) {
           spiderfyOnMaxZoom: true,
           showCoverageOnHover: false,
           zoomToBoundsOnClick: true,
-          iconCreateFunction: (cluster: { getChildCount: () => number }) => {
+          iconCreateFunction: (cluster: { getChildCount: () => number; getAllChildMarkers: () => { options: { icon: unknown } }[] }) => {
             const count = cluster.getChildCount();
+
+            if (count < 10) {
+              const firstMarker = cluster.getAllChildMarkers()[0];
+              return firstMarker.options.icon;
+            }
+
             let bg = 'rgba(255, 204, 0, 0.7)';
             let diameter = 36;
             if (count > 50) { bg = 'rgba(255, 77, 77, 0.8)'; diameter = 48; }
