@@ -12,8 +12,8 @@
     "topRoads": "Carreteras principales"
   },
   "sidebar": {
-    "trafficData": "Datos de Tráfico de España",
-    "dgtApi": "API DGT DATEX II"
+    "github": "GitHub",
+    "linkedin": "LinkedIn"
   },
   "connection": {
     "live": "En vivo",
@@ -216,7 +216,7 @@
     "causeTypes": "Tipos de causa",
     "causeDesc": "12 categorías principales incluyendo accidentes, obras, condiciones meteorólogicas y congestión de tráfico.",
     "geoSpread": "Cobertura geográfica",
-    "geoDesc": "Los datos cubren todas las provincias de España con actualizaciones en tiempo real de la DGT."
+    "geoDesc": "Los datos cubren todas las provincias de España con actualizaciones en tiempo real."
   },
   "heatmapPage": {
     "aboutTitle": "Sobre el mapa de calor",

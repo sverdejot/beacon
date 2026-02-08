@@ -12,8 +12,8 @@
     "topRoads": "Top Roads"
   },
   "sidebar": {
-    "trafficData": "Spanish Traffic Data",
-    "dgtApi": "DGT DATEX II API"
+    "github": "GitHub",
+    "linkedin": "LinkedIn"
   },
   "connection": {
     "live": "Live",
@@ -216,7 +216,7 @@
     "causeTypes": "Cause Types",
     "causeDesc": "12 main categories including accidents, roadworks, weather conditions, and traffic congestion.",
     "geoSpread": "Geographic Spread",
-    "geoDesc": "Data covers all Spanish provinces with real-time updates from DGT."
+    "geoDesc": "Data covers all Spanish provinces with real-time updates."
   },
   "heatmapPage": {
     "aboutTitle": "About the Heatmap",
