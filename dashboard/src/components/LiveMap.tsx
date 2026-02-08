@@ -124,14 +124,28 @@ export function LiveMap({ fullHeight = false }: LiveMapProps) {
           zoomToBoundsOnClick: true,
           iconCreateFunction: (cluster: { getChildCount: () => number }) => {
             const count = cluster.getChildCount();
-            let size = 'small';
-            if (count > 50) size = 'large';
-            else if (count > 10) size = 'medium';
+            let bg = 'rgba(255, 204, 0, 0.7)';
+            let diameter = 36;
+            if (count > 50) { bg = 'rgba(255, 77, 77, 0.8)'; diameter = 48; }
+            else if (count > 10) { bg = 'rgba(255, 153, 0, 0.75)'; diameter = 42; }
 
             return L.default.divIcon({
-              html: `<div class="cluster-${size}"><span>${count}</span></div>`,
+              html: `<div style="
+                background: ${bg};
+                width: ${diameter}px;
+                height: ${diameter}px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #fff;
+                font-weight: 700;
+                font-size: 13px;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+                border: 2px solid rgba(255,255,255,0.5);
+              ">${count}</div>`,
               className: 'marker-cluster',
-              iconSize: L.default.point(40, 40),
+              iconSize: L.default.point(diameter, diameter),
             });
           },
         });
