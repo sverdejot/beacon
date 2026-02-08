@@ -17,12 +17,14 @@ export function LiveMap({ fullHeight = false }: LiveMapProps) {
   const leafletRef = useRef<any>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const markersRef = useRef<Map<string, any>>(new Map());
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const clusterGroupRef = useRef<any>(null);
   const addedIdsRef = useRef<Set<string>>(new Set());
   const [loaded, setLoaded] = useState(false);
   const [incidentCount, setIncidentCount] = useState(0);
 
   const addLocation = useCallback((loc: MapLocationWithId) => {
-    if (!mapInstanceRef.current || !leafletRef.current) return;
+    if (!mapInstanceRef.current || !leafletRef.current || !clusterGroupRef.current) return;
 
     // Skip if already added
     if (addedIdsRef.current.has(loc.id)) return;
@@ -55,15 +57,15 @@ export function LiveMap({ fullHeight = false }: LiveMapProps) {
       const midPoint = coords[midIndex];
 
       marker = L.marker(midPoint, { icon: recordIcon })
-        .addTo(mapInstanceRef.current)
         .bindPopup(createPopupContent(loc));
 
+      clusterGroupRef.current.addLayer(marker);
       markersRef.current.set(loc.id, { marker, polyline });
     } else if (loc.type === 'point' && loc.point) {
       marker = L.marker([loc.point.lat, loc.point.lon], { icon: recordIcon })
-        .addTo(mapInstanceRef.current)
         .bindPopup(createPopupContent(loc));
 
+      clusterGroupRef.current.addLayer(marker);
       markersRef.current.set(loc.id, { marker });
     }
 
@@ -71,12 +73,12 @@ export function LiveMap({ fullHeight = false }: LiveMapProps) {
   }, []);
 
   const removeLocation = useCallback((id: string) => {
-    if (!mapInstanceRef.current) return;
+    if (!mapInstanceRef.current || !clusterGroupRef.current) return;
 
     const markerData = markersRef.current.get(id);
     if (markerData) {
       if (markerData.marker) {
-        mapInstanceRef.current.removeLayer(markerData.marker);
+        clusterGroupRef.current.removeLayer(markerData.marker);
       }
       if (markerData.polyline) {
         mapInstanceRef.current.removeLayer(markerData.polyline);
@@ -94,6 +96,8 @@ export function LiveMap({ fullHeight = false }: LiveMapProps) {
 
     const initMap = async () => {
       const L = await import('leaflet');
+      // @ts-expect-error - markercluster doesn't have type definitions
+      await import('leaflet.markercluster');
       leafletRef.current = L.default;
 
       if (!mapInstanceRef.current) {
@@ -110,6 +114,28 @@ export function LiveMap({ fullHeight = false }: LiveMapProps) {
         }).addTo(mapInstanceRef.current);
 
         L.control.scale({ position: 'bottomright', imperial: false }).addTo(mapInstanceRef.current);
+
+        // Initialize marker cluster group
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        clusterGroupRef.current = (L.default as any).markerClusterGroup({
+          maxClusterRadius: 50,
+          spiderfyOnMaxZoom: true,
+          showCoverageOnHover: false,
+          zoomToBoundsOnClick: true,
+          iconCreateFunction: (cluster: { getChildCount: () => number }) => {
+            const count = cluster.getChildCount();
+            let size = 'small';
+            if (count > 50) size = 'large';
+            else if (count > 10) size = 'medium';
+
+            return L.default.divIcon({
+              html: `<div class="cluster-${size}"><span>${count}</span></div>`,
+              className: 'marker-cluster',
+              iconSize: L.default.point(40, 40),
+            });
+          },
+        });
+        mapInstanceRef.current.addLayer(clusterGroupRef.current);
       }
 
       // Fetch existing incidents first
@@ -165,6 +191,7 @@ export function LiveMap({ fullHeight = false }: LiveMapProps) {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
+        clusterGroupRef.current = null;
       }
     };
   }, [addLocation, removeLocation]);
