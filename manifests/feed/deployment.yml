@@ -16,9 +16,14 @@ spec:
       labels:
         app: feed
     spec:
+      securityContext:
+        runAsNonRoot: true
       containers:
         - name: feed
           image: ghcr.io/sverdejot/beacon/feed:latest
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
           env:
             - name: MQTT_BROKER
               value: tcp://broker:1883

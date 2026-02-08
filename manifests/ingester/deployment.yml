@@ -16,9 +16,14 @@ spec:
       labels:
         app: ingester
     spec:
+      securityContext:
+        runAsNonRoot: true
       containers:
         - name: ingester
           image: ghcr.io/sverdejot/beacon/ingester:latest
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
           env:
             - name: MQTT_BROKER
               value: tcp://broker:1883

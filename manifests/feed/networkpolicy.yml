@@ -1,0 +1,33 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: feed
+  namespace: beacon
+  labels:
+    app: feed
+spec:
+  podSelector:
+    matchLabels:
+      app: feed
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress: []
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app: broker
+      ports:
+        - port: 1883
+          protocol: TCP
+    # Allow DNS resolution and DGT API access
+    - to: []
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+        - port: 443
+          protocol: TCP
