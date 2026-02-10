@@ -16,8 +16,6 @@ spec:
       labels:
         app: ingester
     spec:
-      securityContext:
-        runAsNonRoot: true
       containers:
         - name: ingester
           image: ghcr.io/sverdejot/beacon/ingester:latest

@@ -16,8 +16,6 @@ spec:
       labels:
         app: api
     spec:
-      securityContext:
-        runAsNonRoot: true
       containers:
         - name: api
           image: ghcr.io/sverdejot/beacon/api:latest

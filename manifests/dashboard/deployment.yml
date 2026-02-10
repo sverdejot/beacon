@@ -16,8 +16,6 @@ spec:
       labels:
         app: dashboard
     spec:
-      securityContext:
-        runAsNonRoot: true
       containers:
         - name: dashboard
           image: ghcr.io/sverdejot/beacon/dashboard:latest

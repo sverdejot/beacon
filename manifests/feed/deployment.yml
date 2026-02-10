@@ -16,8 +16,6 @@ spec:
       labels:
         app: feed
     spec:
-      securityContext:
-        runAsNonRoot: true
       containers:
         - name: feed
           image: ghcr.io/sverdejot/beacon/feed:latest
