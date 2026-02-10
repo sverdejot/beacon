@@ -21,7 +21,6 @@ spec:
           image: ghcr.io/sverdejot/beacon/dashboard:latest
           securityContext:
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
           ports:
             - name: http
               containerPort: 4321
@@ -45,3 +44,4 @@ spec:
               port: 4321
             initialDelaySeconds: 15
             periodSeconds: 20
+
