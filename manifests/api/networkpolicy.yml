@@ -18,6 +18,9 @@ spec:
         - podSelector:
             matchLabels:
               app: dashboard
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
       ports:
         - port: 8081
           protocol: TCP
