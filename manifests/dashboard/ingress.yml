@@ -14,7 +14,7 @@ spec:
   tls:
     - hosts:
         - beacon.sverdejot.dev
-      secretName: beacon-tls
+      secretName: sverdejot-dot-dev-tls
   rules:
     - host: beacon.sverdejot.dev
       http:
