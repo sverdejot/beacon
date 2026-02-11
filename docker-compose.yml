@@ -21,7 +21,7 @@ services:
       context: .
       dockerfile: build/dashboard/Dockerfile
     ports:
-      - 4321:4321
+      - 4321:80
     depends_on:
       api:
         condition: service_started

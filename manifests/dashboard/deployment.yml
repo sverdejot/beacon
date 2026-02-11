@@ -23,7 +23,7 @@ spec:
             allowPrivilegeEscalation: false
           ports:
             - name: http
-              containerPort: 4321
+              containerPort: 80
               protocol: TCP
           resources:
             requests:
@@ -35,13 +35,13 @@ spec:
           readinessProbe:
             httpGet:
               path: /
-              port: 4321
+              port: 80
             initialDelaySeconds: 5
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /
-              port: 4321
+              port: 80
             initialDelaySeconds: 15
             periodSeconds: 20
 

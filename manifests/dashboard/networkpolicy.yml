@@ -16,7 +16,7 @@ spec:
   ingress:
     # Allow external traffic (via ingress controller)
     - ports:
-        - port: 4321
+        - port: 80
           protocol: TCP
   egress:
     - to:
