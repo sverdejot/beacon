@@ -224,10 +224,10 @@ export function ActiveIncidentsTable({ data }: Props) {
                       }}
                       title={t('table.clickToFilterCause')}
                     >
-                      {inc.cause_type.replace(/_/g, ' ') || '-'}
+                      {t(`causeType.${inc.cause_type}`, { defaultValue: inc.cause_type.replace(/_/g, ' ') }) || '-'}
                     </button>
                   ) : (
-                    inc.cause_type.replace(/_/g, ' ') || '-'
+                    t(`causeType.${inc.cause_type}`, { defaultValue: inc.cause_type.replace(/_/g, ' ') }) || '-'
                   )}
                 </td>
                 <td>{formatDuration(inc.duration_mins)}</td>

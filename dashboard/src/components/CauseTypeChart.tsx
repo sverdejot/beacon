@@ -33,7 +33,7 @@ export function CauseTypeChart({ data }: Props) {
   }
 
   const chartData = {
-    labels: data.map((d) => d.label.replace(/_/g, ' ')),
+    labels: data.map((d) => t(`causeType.${d.label}`, { defaultValue: d.label.replace(/_/g, ' ') })),
     datasets: [
       {
         label: t('charts.incidents'),
@@ -60,7 +60,7 @@ export function CauseTypeChart({ data }: Props) {
         addFilter({
           type: 'cause',
           value: item.label,
-          label: item.label.replace(/_/g, ' '),
+          label: t(`causeType.${item.label}`, { defaultValue: item.label.replace(/_/g, ' ') }),
         });
       }
     },

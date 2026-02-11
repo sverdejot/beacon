@@ -64,7 +64,7 @@ export function TopSubtypesTable({ data }: Props) {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                       <span aria-hidden="true">{getSubtypeIcon(item.subtype)}</span>
                       <span style={{ fontWeight: 500 }}>
-                        {item.subtype.replace(/_/g, ' ')}
+                        {t(`causeSubtype.${item.subtype}`, { defaultValue: item.subtype.replace(/_/g, ' ') })}
                       </span>
                     </div>
                     {/* Progress bar */}
