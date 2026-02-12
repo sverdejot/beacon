@@ -87,7 +87,6 @@ export function CauseTypeChart({ data }: Props) {
         },
         ticks: {
           color: '#94a3b8',
-          stepSize: 1,
         },
       },
       y: {

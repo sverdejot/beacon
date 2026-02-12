@@ -65,7 +65,8 @@ function filtersToParams(timeRange: string, filters: Filter[]): QueryParams {
   return params;
 }
 
-export function useDashboardData(timeRange = '7d', filters: Filter[] = []) {
+export function useDashboardData(filters: Filter[] = []) {
+  const timeRange = '7d';
   const [data, setData] = useState<DashboardData>({
     summary: null,
     hourlyTrend: [],

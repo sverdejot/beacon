@@ -36,8 +36,8 @@ export function OverviewPage({ currentPath, lang }: OverviewPageProps) {
 
 function OverviewContent() {
   const { t } = useTranslation();
-  const { timeRange, filters } = useDashboard();
-  const data = useDashboardData(timeRange, filters);
+  const { filters } = useDashboard();
+  const data = useDashboardData(filters);
   const sse = useSSE();
 
   // Prefer SSE summary for real-time updates, fall back to API data

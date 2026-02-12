@@ -22,8 +22,8 @@ export function HeatmapPage({ currentPath, lang }: HeatmapPageProps) {
 
 function HeatmapContent() {
   const { t } = useTranslation();
-  const { timeRange, filters } = useDashboard();
-  const data = useDashboardData(timeRange, filters);
+  const { filters } = useDashboard();
+  const data = useDashboardData(filters);
 
   if (data.loading) {
     return (

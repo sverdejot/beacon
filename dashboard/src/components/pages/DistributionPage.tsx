@@ -25,8 +25,8 @@ export function DistributionPage({ currentPath, lang }: DistributionPageProps) {
 
 function DistributionContent() {
   const { t } = useTranslation();
-  const { timeRange, filters } = useDashboard();
-  const data = useDashboardData(timeRange, filters);
+  const { filters } = useDashboard();
+  const data = useDashboardData(filters);
 
   if (data.loading) {
     return (

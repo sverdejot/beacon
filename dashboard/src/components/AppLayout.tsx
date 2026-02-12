@@ -1,7 +1,6 @@
 import { type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DashboardProvider, useDashboard } from '../context/DashboardContext';
-import { TimeRangeSelector } from './TimeRangeSelector';
 import { ConnectionStatus } from './ConnectionStatus';
 import { ActiveFilters } from './ActiveFilters';
 import { useSSE } from '../hooks/useSSE';
@@ -31,7 +30,7 @@ interface AppLayoutProps {
 }
 
 function AppLayoutInner({ children, title, currentPath }: AppLayoutProps) {
-  const { timeRange, setTimeRange, sidebarOpen, toggleSidebar, setSidebarOpen } = useDashboard();
+  const { sidebarOpen, toggleSidebar, setSidebarOpen } = useDashboard();
   const sse = useSSE();
 
   return (
@@ -68,7 +67,6 @@ function AppLayoutInner({ children, title, currentPath }: AppLayoutProps) {
             <h1 className="page-title">{title}</h1>
           </div>
           <div className="content-header-right">
-            <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
             <ConnectionStatus connected={sse.connected} />
           </div>
         </header>

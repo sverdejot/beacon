@@ -24,8 +24,8 @@ export function TrendsPage({ currentPath, lang }: TrendsPageProps) {
 
 function TrendsContent() {
   const { t } = useTranslation();
-  const { timeRange, filters } = useDashboard();
-  const data = useDashboardData(timeRange, filters);
+  const { filters } = useDashboard();
+  const data = useDashboardData(filters);
 
   if (data.loading) {
     return (

@@ -7,10 +7,6 @@ export interface Filter {
 }
 
 interface DashboardContextType {
-  // Time range
-  timeRange: string;
-  setTimeRange: (range: string) => void;
-  
   // Filters
   filters: Filter[];
   addFilter: (filter: Filter) => void;
@@ -31,7 +27,6 @@ interface DashboardProviderProps {
 }
 
 export function DashboardProvider({ children }: DashboardProviderProps) {
-  const [timeRange, setTimeRange] = useState('7d');
   const [filters, setFilters] = useState<Filter[]>([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -70,8 +65,6 @@ export function DashboardProvider({ children }: DashboardProviderProps) {
   return (
     <DashboardContext.Provider
       value={{
-        timeRange,
-        setTimeRange,
         filters,
         addFilter,
         removeFilter,
