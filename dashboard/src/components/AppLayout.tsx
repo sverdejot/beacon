@@ -161,6 +161,7 @@ function SidebarContent({ currentPath }: { currentPath: string }) {
           <span className={`lang-option ${currentLang === 'es' ? 'active' : ''}`}>ES</span>
           <span className={`lang-option ${currentLang === 'en' ? 'active' : ''}`}>EN</span>
         </a>
+        <span className="sidebar-made-by">made by <a href="https://github.com/sverdejot" target="_blank" rel="noopener noreferrer">@sverdejot</a></span>
       </div>
     </>
   );
