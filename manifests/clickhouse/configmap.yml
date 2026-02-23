@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: clickhouse-logging
+  namespace: beacon
+data:
+  logging.xml: |
+    <clickhouse>
+        <logger>
+            <level>information</level>
+            <log>/dev/stdout</log>
+            <errorlog>/dev/stderr</errorlog>
+            <formatting>
+                <type>JSON</type>
+            </formatting>
+        </logger>
+    </clickhouse>
